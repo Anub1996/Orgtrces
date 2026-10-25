@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orgtraces Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --bg:#f8f9fc;--sidebar:#fff;--card:#fff;
+            --accent:#7c3aed;--accent2:#6366f1;--accent3:#3b82f6;
+            --emerald:#10b981;--rose:#f43f5e;--amber:#f59e0b;--cyan:#06b6d4;
+            --text:#1e1b4b;--text2:#334155;--text3:#64748b;--text4:#94a3b8;
+            --border:#e2e8f0;--border2:#cbd5e1;
+            --pastel-purple:#ede9fe;--pastel-blue:#dbeafe;--pastel-green:#d1fae5;
+            --pastel-rose:#ffe4e6;--pastel-amber:#fef3c7;
+        }
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+        /* SIDEBAR */
+        .sidebar{width:260px;background:var(--sidebar);border-right:1px solid var(--border);padding:1.5rem 1rem;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:50}
+        .sidebar .logo{display:flex;align-items:center;gap:.6rem;margin-bottom:2rem;padding:0 .5rem}
+        .sidebar .logo-mark{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent3));box-shadow:0 4px 12px rgba(124,58,237,0.25)}
+        .sidebar .logo-text{font-size:1.15rem;font-weight:800;letter-spacing:-.5px}
+        .sidebar .logo sub{font-size:.6rem;color:var(--text4);font-weight:500;letter-spacing:0}
+
+        .nav-section{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text4);padding:1rem .75rem .5rem;margin-top:.5rem}
+        .nav-item{display:flex;align-items:center;gap:.7rem;padding:.65rem .75rem;border-radius:10px;font-size:.85rem;font-weight:500;color:var(--text3);cursor:pointer;transition:all .2s;margin-bottom:2px}
+        .nav-item:hover{background:var(--pastel-purple);color:var(--text)}
+        .nav-item.active{background:var(--pastel-purple);color:var(--accent);font-weight:600}
+        .nav-item .ni{width:20px;text-align:center;font-size:.95rem}
+        .nav-badge{margin-left:auto;background:var(--rose);color:#fff;font-size:.6rem;font-weight:700;padding:.15rem .45rem;border-radius:6px;min-width:18px;text-align:center}
+
+        .sidebar-footer{margin-top:auto;padding:.75rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.6rem}
+        .avatar{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700}
+        .user-name{font-size:.82rem;font-weight:600}
+        .user-role{font-size:.68rem;color:var(--text4)}
+
+        /* MAIN */
+        .main{margin-left:260px;flex:1;padding:1.5rem 2rem;min-width:0}
+        .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem}
+        .top-bar h1{font-size:1.5rem;font-weight:800;letter-spacing:-.5px}
+        .top-bar .live{display:flex;align-items:center;gap:.4rem;font-size:.78rem;font-weight:600;color:var(--emerald)}
+        .top-bar .live .dot{width:8px;height:8px;border-radius:50%;background:var(--emerald);animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+        .top-right{display:flex;align-items:center;gap:1rem}
+        .search-box{display:flex;align-items:center;gap:.5rem;padding:.5rem 1rem;background:#fff;border:1px solid var(--border);border-radius:10px;font-size:.82rem;color:var(--text3);width:250px}
+        .search-box input{border:none;outline:none;flex:1;font-family:inherit;font-size:.82rem;color:var(--text)}
+        .notif-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:1.05rem;cursor:pointer;position:relative}
+        .notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--rose);border:2px solid #fff}
+
+        /* STATS ROW */
+        .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem}
+        .stat{padding:1.25rem;border-radius:16px;background:var(--card);border:1px solid var(--border);position:relative;overflow:hidden}
+        .stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:0 0 3px 3px}
+        .stat:nth-child(1)::before{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+        .stat:nth-child(2)::before{background:var(--emerald)}
+        .stat:nth-child(3)::before{background:var(--amber)}
+        .stat:nth-child(4)::before{background:var(--accent3)}
+        .stat:nth-child(5)::before{background:var(--rose)}
+        .stat-label{font-size:.72rem;font-weight:600;color:var(--text4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem}
+        .stat-value{font-size:1.8rem;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+        .stat-value.purple{color:var(--accent)}
+        .stat-value.green{color:var(--emerald)}
+        .stat-value.amber{color:var(--amber)}
+        .stat-value.blue{color:var(--accent3)}
+        .stat-value.rose{color:var(--rose)}
+        .stat-change{font-size:.68rem;font-weight:600;margin-top:.3rem}
+        .stat-change.up{color:var(--emerald)}
+        .stat-change.down{color:var(--rose)}
+
+        /* EMPLOYEE TABLE */
+        .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:1.5rem}
+        .panel-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border)}
+        .panel-title{font-size:.95rem;font-weight:700}
+        .panel-filters{display:flex;gap:.5rem}
+        .filter-btn{padding:.35rem .85rem;border-radius:8px;border:1px solid var(--border);background:#fff;font-family:inherit;font-size:.75rem;font-weight:600;color:var(--text3);cursor:pointer;transition:all .2s}
+        .filter-btn.active,.filter-btn:hover{background:var(--pastel-purple);color:var(--accent);border-color:rgba(124,58,237,0.15)}
+
+        table{width:100%;border-collapse:collapse}
+        thead th{padding:.75rem 1rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text4);text-align:left;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.01)}
+        tbody td{padding:.85rem 1rem;font-size:.83rem;border-bottom:1px solid rgba(0,0,0,0.03);vertical-align:middle}
+        tbody tr:hover{background:rgba(124,58,237,0.015)}
+        tbody tr:last-child td{border-bottom:none}
+
+        .emp-name{display:flex;align-items:center;gap:.7rem}
+        .emp-avatar{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:#fff;flex-shrink:0}
+        .emp-info .name{font-weight:600;font-size:.83rem}
+        .emp-info .dept{font-size:.7rem;color:var(--text4)}
+
+        .status-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .65rem;border-radius:6px;font-size:.7rem;font-weight:700}
+        .status-badge.online{background:var(--pastel-green);color:#059669}
+        .status-badge.idle{background:var(--pastel-amber);color:#d97706}
+        .status-badge.offline{background:#f1f5f9;color:var(--text4)}
+        .status-badge.locked{background:var(--pastel-rose);color:#e11d48}
+        .status-badge .sdot{width:6px;height:6px;border-radius:50%}
+        .status-badge.online .sdot{background:#059669}
+        .status-badge.idle .sdot{background:#d97706}
+        .status-badge.offline .sdot{background:var(--text4)}
+        .status-badge.locked .sdot{background:#e11d48}
+
+        .app-tag{padding:.2rem .55rem;background:rgba(0,0,0,0.03);border-radius:6px;font-size:.72rem;color:var(--text2);font-family:'JetBrains Mono',monospace;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block}
+        .productivity-bar{width:80px;height:6px;border-radius:3px;background:#e2e8f0;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:.5rem}
+        .productivity-bar .fill{height:100%;border-radius:3px;transition:width .6s}
+        .prod-high .fill{background:var(--emerald)}
+        .prod-mid .fill{background:var(--amber)}
+        .prod-low .fill{background:var(--rose)}
+
+        .action-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:.8rem;transition:all .2s;margin-left:.3rem}
+        .action-btn:hover{background:var(--pastel-purple);border-color:rgba(124,58,237,0.15)}
+
+        /* ALERTS PANEL */
+        .alert-item{display:flex;align-items:center;gap:.85rem;padding:.85rem 1.25rem;border-bottom:1px solid rgba(0,0,0,0.03);transition:background .2s}
+        .alert-item:hover{background:rgba(0,0,0,0.01)}
+        .alert-item:last-child{border-bottom:none}
+        .alert-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+        .alert-icon.critical{background:var(--pastel-rose);border:1px solid rgba(244,63,94,0.1)}
+        .alert-icon.high{background:var(--pastel-amber);border:1px solid rgba(245,158,11,0.1)}
+        .alert-icon.medium{background:var(--pastel-blue);border:1px solid rgba(59,130,246,0.1)}
+        .alert-msg{font-size:.82rem;font-weight:500;color:var(--text2)}
+        .alert-time{font-size:.68rem;color:var(--text4);margin-top:.15rem}
+        .alert-resolve{margin-left:auto;padding:.3rem .7rem;border-radius:7px;border:1px solid var(--border);background:#fff;font-size:.7rem;font-weight:600;color:var(--text3);cursor:pointer;font-family:inherit}
+        .alert-resolve:hover{background:var(--pastel-green);color:#059669;border-color:rgba(16,185,129,0.15)}
+
+        .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+
+        @media(max-width:1200px){.stats-row{grid-template-columns:repeat(3,1fr)}.bottom-grid{grid-template-columns:1fr}}
+        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.stats-row{grid-template-columns:1fr 1fr}}
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="logo">
+        <div class="logo-mark">OT</div>
+        <div><span class="logo-text">Orgtraces</span><br><sub>Manager Dashboard</sub></div>
+    </div>
+
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active"><span class="ni">&#9707;</span> Dashboard</div>
+    <div class="nav-item"><span class="ni">&#128101;</span> Employees <span class="nav-badge" id="online-badge">0</span></div>
+    <div class="nav-item"><span class="ni">&#128247;</span> Screenshots</div>
+
+    <div class="nav-section">Security</div>
+    <div class="nav-item"><span class="ni">&#128276;</span> Alerts <span class="nav-badge" style="background:var(--amber)" id="alert-badge">0</span></div>
+    <div class="nav-item"><span class="ni">&#129302;</span> AI Detection</div>
+    <div class="nav-item"><span class="ni">&#128274;</span> Screen Lock</div>
+    <div class="nav-item"><span class="ni">&#128737;</span> DLP Events</div>
+
+    <div class="nav-section">Wellness</div>
+    <div class="nav-item"><span class="ni">&#128154;</span> Break Reports</div>
+    <div class="nav-item"><span class="ni">&#128200;</span> Productivity</div>
+
+    <div class="nav-section">Settings</div>
+    <div class="nav-item"><span class="ni">&#9881;</span> Policies</div>
+    <div class="nav-item"><span class="ni">&#128273;</span> Agent Keys</div>
+    <div class="nav-item"><span class="ni">&#128101;</span> Team Management</div>
+
+    <div class="sidebar-footer">
+        <div class="avatar">AU</div>
+        <div><div class="user-name">Admin User</div><div class="user-role">Organization Admin</div></div>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+    <div class="top-bar">
+        <div>
+            <h1>Dashboard</h1>
+            <div class="live"><span class="dot"></span> Live &mdash; Auto-refreshing</div>
+        </div>
+        <div class="top-right">
+            <div class="search-box">&#128269; <input type="text" placeholder="Search employees..." id="search-input"></div>
+            <div class="notif-btn">&#128276;<div class="notif-dot"></div></div>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+        <div class="stat">
+            <div class="stat-label">Total Employees</div>
+            <div class="stat-value purple" id="stat-total">247</div>
+            <div class="stat-change up">&#9650; 12 this week</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Online Now</div>
+            <div class="stat-value green" id="stat-online">183</div>
+            <div class="stat-change up">74% of workforce</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Idle</div>
+            <div class="stat-value amber" id="stat-idle">23</div>
+            <div class="stat-change down">&#9660; 3 from yesterday</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Avg Productivity</div>
+            <div class="stat-value blue" id="stat-prod">87%</div>
+            <div class="stat-change up">&#9650; 2.1% vs last week</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Alerts Today</div>
+            <div class="stat-value rose" id="stat-alerts">12</div>
+            <div class="stat-change down">&#9660; 5 unresolved</div>
+        </div>
+    </div>
+
+    <!-- EMPLOYEE TABLE -->
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title">Employee Activity (Live)</div>
+            <div class="panel-filters">
+                <button class="filter-btn active">All</button>
+                <button class="filter-btn">Online</button>
+                <button class="filter-btn">Idle</button>
+                <button class="filter-btn">Offline</button>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Status</th>
+                    <th>Current App</th>
+                    <th>Active Time</th>
+                    <th>Productivity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="emp-table">
+                <tr>
+                    <td><div class="emp-name"><div class="emp-avatar" style="background:linear-gradient(135deg,#7c3aed,#6366f1)">PK</div><div class="emp-info"><div class="name">Priya K.</div><div class="dept">Engineering</div></div></div></td>
+                    <td><span class="status-badge online"><span class="sdot"></span> Online</span></td>
+                    <td><span class="app-tag">VS Code</span></td>
+                    <td><span style="font-family:'JetBrains Mono';font-weight:600;font-size:.82rem">6h 42m</span></td>
+                    <td><span class="productivity-bar prod-high"><span class="fill" style="width:94%"></span></span><span style="font-size:.78rem;font-weight:600">94%</span></td>
+                    <td><button class="action-btn" title="View">&#128065;</button><button class="action-btn" title="Screenshot">&#128247;</button><button class="action-btn" title="Lock">&#128274;</button></td>
+                </tr>
+                <tr>
+                    <td><div class="emp-name"><div class="emp-avatar" style="background:linear-gradient(135deg,#3b82f6,#06b6d4)">RM</div><div class="emp-info"><div class="name">Rahul M.</div><div class="dept">Sales</div></div></div></td>
+                    <td><span class="status-badge online"><span class="sdot"></span> Online</span></td>
+                    <td><span class="app-tag">Salesforce</span></td>
+                    <td><span style="font-family:'JetBrains Mono';font-weight:600;font-size:.82rem">5h 18m</span></td>
+                    <td><span class="productivity-bar prod-high"><span class="fill" style="width:88%"></span></span><span style="font-size:.78rem;font-weight:600">88%</span></td>
+                    <td><button class="action-btn" title="View">&#128065;</button><button class="action-btn" title="Screenshot">&#128247;</button><button class="action-btn" title="Lock">&#128274;</button></td>
+                </tr>
+                <tr>
+                    <td><div class="emp-name"><div class="emp-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">AS</div><div class="emp-info"><div class="name">Anita S.</div><div class="dept">Design</div></div></div></td>
+                    <td><span class="status-badge idle"><span class="sdot"></span> Idle</span></td>
+                    <td><span class="app-tag">Figma</span></td>
+                    <td><span style="font-family:'JetBrains Mono';font-weight:600;font-size:.82rem">4h 05m</span></td>
+                    <td><span class="productivity-bar prod-mid"><span class="fill" style="width:72%"></span></span><span style="font-size:.78rem;font-weight:600">72%</span></td>
+                    <td><button class="action-btn" title="View">&#128065;</button><button class="action-btn" title="Screenshot">&#128247;</button><button class="action-btn" title="Lock">&#128274;</button></td>
+                </tr>
+                <tr>
+                    <td><div class="emp-name"><div class="emp-avatar" style="background:linear-gradient(135deg,#f59e0b,#f43f5e)">VR</div><div class="emp-info"><div class="name">Vikram R.</div><div class="dept">Finance</div></div></div></td>
+                    <td><span class="status-badge online"><span class="sdot"></span> Online</span></td>
+                    <td><span class="app-tag">Excel</span></td>
+                    <td><span style="font-family:'JetBrains Mono';font-weight:600;font-size:.82rem">7h 11m</span></td>
+                    <td><span class="productivity-bar prod-high"><span class="fill" style="width:91%"></span></span><span style="font-size:.78rem;font-weight:600">91%</span></td>
+                    <td><button class="action-btn" title="View">&#128065;</button><button class="action-btn" title="Screenshot">&#128247;</button><button class="action-btn" title="Lock">&#128274;</button></td>
+                </tr>
+                <tr>
+                    <td><div class="emp-name"><div class="emp-avatar" style="background:linear-gradient(135deg,#ec4899,#f43f5e)">NK</div><div class="emp-info"><div class="name">Neha K.</div><div class="dept">HR</div></div></div></td>
+                    <td><span class="status-badge locked"><span class="sdot"></span> Locked</span></td>
+                    <td><span class="app-tag">—</span></td>
+                    <td><span style="font-family:'JetBrains Mono';font-weight:600;font-size:.82rem">3h 28m</span></td>
+                    <td><span class="productivity-bar prod-low"><span class="fill" style="width:45%"></span></span><span style="font-size:.78rem;font-weight:600">45%</span></td>
+                    <td><button class="action-btn" title="View">&#128065;</button><button class="action-btn" title="Screenshot">&#128247;</button><button class="action-btn" title="Unlock">&#128275;</button></td>
+                </tr>
+                <tr>
+                    <td><div class="emp-name"><div class="emp-avatar" style="background:linear-gradient(135deg,#64748b,#475569)">DJ</div><div class="emp-info"><div class="name">Deepak J.</div><div class="dept">Support</div></div></div></td>
+                    <td><span class="status-badge offline"><span class="sdot"></span> Offline</span></td>
+                    <td><span class="app-tag">—</span></td>
+                    <td><span style="font-family:'JetBrains Mono';font-weight:600;font-size:.82rem">0h 00m</span></td>
+                    <td><span class="productivity-bar prod-low"><span class="fill" style="width:0%"></span></span><span style="font-size:.78rem;font-weight:600">—</span></td>
+                    <td><button class="action-btn" title="View">&#128065;</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- BOTTOM GRID: Alerts + Activity -->
+    <div class="bottom-grid">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">Recent Alerts</div>
+                <button class="filter-btn">View All</button>
+            </div>
+            <div id="alerts-list">
+                <div class="alert-item">
+                    <div class="alert-icon critical">&#9888;</div>
+                    <div><div class="alert-msg">Phone detected — Vikram R. (Finance)</div><div class="alert-time">2 min ago &middot; AI Detection</div></div>
+                    <button class="alert-resolve">Resolve</button>
+                </div>
+                <div class="alert-item">
+                    <div class="alert-icon high">&#128274;</div>
+                    <div><div class="alert-msg">Clipboard copy blocked — Neha K. (HR)</div><div class="alert-time">8 min ago &middot; DLP</div></div>
+                    <button class="alert-resolve">Resolve</button>
+                </div>
+                <div class="alert-item">
+                    <div class="alert-icon medium">&#9201;</div>
+                    <div><div class="alert-msg">Idle exceeded 15 min — Anita S. (Design)</div><div class="alert-time">12 min ago &middot; Idle Policy</div></div>
+                    <button class="alert-resolve">Resolve</button>
+                </div>
+                <div class="alert-item">
+                    <div class="alert-icon high">&#128101;</div>
+                    <div><div class="alert-msg">Multiple persons detected — Rahul M. (Sales)</div><div class="alert-time">23 min ago &middot; AI Detection</div></div>
+                    <button class="alert-resolve">Resolve</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">Department Overview</div>
+                <button class="filter-btn">Today</button>
+            </div>
+            <table>
+                <thead><tr><th>Department</th><th>Online</th><th>Avg Productivity</th><th>Alerts</th></tr></thead>
+                <tbody>
+                    <tr><td style="font-weight:600">Engineering</td><td><span style="color:var(--emerald);font-weight:600">42 / 48</span></td><td><span class="productivity-bar prod-high"><span class="fill" style="width:92%"></span></span> 92%</td><td>1</td></tr>
+                    <tr><td style="font-weight:600">Sales</td><td><span style="color:var(--emerald);font-weight:600">38 / 45</span></td><td><span class="productivity-bar prod-high"><span class="fill" style="width:87%"></span></span> 87%</td><td>3</td></tr>
+                    <tr><td style="font-weight:600">Design</td><td><span style="color:var(--amber);font-weight:600">15 / 22</span></td><td><span class="productivity-bar prod-mid"><span class="fill" style="width:78%"></span></span> 78%</td><td>2</td></tr>
+                    <tr><td style="font-weight:600">Finance</td><td><span style="color:var(--emerald);font-weight:600">28 / 30</span></td><td><span class="productivity-bar prod-high"><span class="fill" style="width:91%"></span></span> 91%</td><td>1</td></tr>
+                    <tr><td style="font-weight:600">HR</td><td><span style="color:var(--amber);font-weight:600">12 / 18</span></td><td><span class="productivity-bar prod-mid"><span class="fill" style="width:73%"></span></span> 73%</td><td>4</td></tr>
+                    <tr><td style="font-weight:600">Support</td><td><span style="color:var(--emerald);font-weight:600">48 / 52</span></td><td><span class="productivity-bar prod-high"><span class="fill" style="width:85%"></span></span> 85%</td><td>1</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<script>
+// WebSocket connection for real-time updates (connects when backend is running)
+(function(){
+    const API_BASE = window.location.hostname === 'localhost'
+        ? 'http://localhost:8080'
+        : 'https://api.orgtraces.com';
+
+    // Demo: simulate live status updates
+    const statuses = ['online','idle','offline','locked'];
+    const apps = ['VS Code','Chrome','Slack','Figma','Excel','Salesforce','Teams','Outlook','Jira','Notion'];
+
+    setInterval(()=>{
+        const rows = document.querySelectorAll('#emp-table tr');
+        if(!rows.length) return;
+        const row = rows[Math.floor(Math.random()*rows.length)];
+        const badge = row.querySelector('.status-badge');
+        if(!badge) return;
+        const newStatus = statuses[Math.floor(Math.random()*statuses.length)];
+        badge.className = 'status-badge ' + newStatus;
+        badge.innerHTML = '<span class="sdot"></span> ' + newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+    }, 5000);
+
+    // Filter buttons
+    document.querySelectorAll('.panel-filters .filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+})();
+</script>
+
+</body>
+</html>

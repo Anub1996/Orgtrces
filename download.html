@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Orgtraces Agent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --bg:#faf9ff;--accent:#7c3aed;--accent2:#6366f1;--accent3:#3b82f6;
+            --text:#1e1b4b;--text2:#334155;--text3:#64748b;--text4:#94a3b8;
+            --gborder:rgba(0,0,0,0.06);--gborder2:rgba(0,0,0,0.1);
+            --pastel-purple:#ede9fe;--pastel-blue:#dbeafe;--pastel-green:#d1fae5;
+        }
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+        header{height:70px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1rem,4vw,3.5rem);border-bottom:1px solid var(--gborder);background:rgba(250,249,255,0.8);backdrop-filter:blur(40px)}
+        .logo{display:flex;align-items:center;gap:.65rem;text-decoration:none;color:var(--text)}
+        .logo-mark{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:900;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent3));box-shadow:0 4px 16px rgba(124,58,237,0.3)}
+        .logo-text{font-size:1.25rem;font-weight:800;letter-spacing:-.5px}
+        nav a{color:var(--text3);text-decoration:none;font-weight:500;font-size:.85rem;margin-left:1.5rem}
+        nav a:hover{color:var(--text)}
+
+        .hero{text-align:center;padding:6rem 1.5rem 4rem;max-width:800px;margin:0 auto}
+        .hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;letter-spacing:-2px;margin-bottom:1rem}
+        .hero h1 span{background:linear-gradient(135deg,#7c3aed,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .hero p{font-size:1.05rem;color:var(--text3);line-height:1.8;max-width:600px;margin:0 auto 3rem}
+
+        .download-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;max-width:1000px;margin:0 auto;padding:0 1.5rem 5rem}
+        .dl-card{padding:2.5rem;border-radius:24px;background:rgba(255,255,255,0.85);border:1px solid var(--gborder);text-align:center;transition:all .4s;position:relative;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.03)}
+        .dl-card:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,0.08);border-color:var(--gborder2)}
+        .dl-card.primary{border-color:rgba(124,58,237,0.15);background:linear-gradient(160deg,rgba(124,58,237,0.03),rgba(99,102,241,0.02))}
+        .dl-card.primary::before{content:'RECOMMENDED';position:absolute;top:16px;right:-28px;transform:rotate(45deg);background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;font-size:.6rem;font-weight:700;padding:.25rem 2.5rem;letter-spacing:1px}
+        .dl-icon{width:72px;height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 1.5rem}
+        .dl-icon.win{background:var(--pastel-blue);border:1px solid rgba(59,130,246,0.1)}
+        .dl-icon.linux{background:var(--pastel-green);border:1px solid rgba(16,185,129,0.1)}
+        .dl-icon.mac{background:var(--pastel-purple);border:1px solid rgba(124,58,237,0.1)}
+        .dl-card h3{font-size:1.3rem;font-weight:700;margin-bottom:.3rem}
+        .dl-card .version{font-size:.78rem;color:var(--text4);font-family:'JetBrains Mono',monospace;margin-bottom:1rem}
+        .dl-card p{font-size:.85rem;color:var(--text3);line-height:1.7;margin-bottom:1.5rem}
+        .dl-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.85rem 2rem;border-radius:14px;font-family:inherit;font-weight:700;font-size:.92rem;cursor:pointer;border:none;transition:all .3s;text-decoration:none}
+        .dl-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;box-shadow:0 4px 16px rgba(124,58,237,0.3)}
+        .dl-btn.primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,58,237,0.4)}
+        .dl-btn.secondary{background:rgba(255,255,255,0.8);color:var(--text2);border:1px solid var(--gborder)}
+        .dl-btn.secondary:hover{background:#fff;border-color:var(--gborder2)}
+        .dl-meta{display:flex;justify-content:center;gap:1.5rem;margin-top:1rem;font-size:.72rem;color:var(--text4)}
+
+        .requirements{max-width:800px;margin:0 auto;padding:0 1.5rem 5rem}
+        .req-card{padding:2rem;border-radius:20px;background:rgba(255,255,255,0.8);border:1px solid var(--gborder)}
+        .req-card h3{font-size:1.1rem;font-weight:700;margin-bottom:1rem}
+        .req-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+        .req-item{display:flex;align-items:center;gap:.6rem;font-size:.85rem;color:var(--text3);padding:.5rem .75rem;background:rgba(0,0,0,0.015);border-radius:10px}
+        .req-item .check{color:#059669;font-weight:700}
+
+        .setup-steps{max-width:800px;margin:0 auto;padding:0 1.5rem 5rem}
+        .setup-steps h2{font-size:1.8rem;font-weight:800;text-align:center;margin-bottom:2rem;letter-spacing:-1px}
+        .step{display:flex;gap:1.5rem;margin-bottom:1.5rem;padding:1.5rem;border-radius:16px;background:rgba(255,255,255,0.7);border:1px solid var(--gborder)}
+        .step-num{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex-shrink:0}
+        .step h4{font-weight:700;margin-bottom:.3rem}
+        .step p{font-size:.85rem;color:var(--text3);line-height:1.7}
+        .step code{background:rgba(0,0,0,0.04);padding:.15rem .45rem;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:.78rem}
+
+        footer{text-align:center;padding:2rem;font-size:.78rem;color:var(--text4);border-top:1px solid var(--gborder)}
+
+        @media(max-width:640px){
+            .download-grid{grid-template-columns:1fr}
+            .req-grid{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a class="logo" href="index.html"><div class="logo-mark">OT</div><span class="logo-text">Orgtraces</span></a>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="index.html#features">Features</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="#">Docs</a>
+    </nav>
+</header>
+
+<div class="hero">
+    <h1>Download the <span>Orgtraces Agent</span></h1>
+    <p>Install the lightweight monitoring agent on your team's workstations. Takes under 3 minutes. Zero performance impact.</p>
+</div>
+
+<div class="download-grid">
+    <div class="dl-card primary">
+        <div class="dl-icon win">&#128187;</div>
+        <h3>Windows Agent</h3>
+        <div class="version">v1.0.0 &middot; MSI Installer</div>
+        <p>For Windows 10/11 workstations. Deploy via SCCM, Intune, or manual install. Runs as a Windows Service.</p>
+        <a href="#" class="dl-btn primary" id="dl-win">&#11015; Download for Windows</a>
+        <div class="dl-meta">
+            <span>42 MB</span>
+            <span>64-bit</span>
+            <span>SHA256 verified</span>
+        </div>
+    </div>
+
+    <div class="dl-card">
+        <div class="dl-icon linux">&#128039;</div>
+        <h3>Linux Agent</h3>
+        <div class="version">v1.0.0 &middot; DEB / RPM</div>
+        <p>For Ubuntu 20.04+, Debian 11+, RHEL 8+, and CentOS Stream. Runs as a systemd service.</p>
+        <a href="#" class="dl-btn secondary" id="dl-linux">&#11015; Download .deb</a>
+        <div class="dl-meta">
+            <span>28 MB</span>
+            <span>amd64</span>
+            <span>GPG signed</span>
+        </div>
+    </div>
+
+    <div class="dl-card">
+        <div class="dl-icon mac">&#127823;</div>
+        <h3>macOS Agent</h3>
+        <div class="version">Coming Soon</div>
+        <p>macOS support is on our roadmap. Join the waitlist to be notified when it's available.</p>
+        <a href="#" class="dl-btn secondary">Join Waitlist</a>
+        <div class="dl-meta">
+            <span>Q2 2025</span>
+        </div>
+    </div>
+</div>
+
+<div class="setup-steps">
+    <h2>Quick Setup Guide</h2>
+
+    <div class="step">
+        <div class="step-num">1</div>
+        <div>
+            <h4>Download & Install the Agent</h4>
+            <p>Download the MSI installer above. For mass deployment, use <code>msiexec /i OrgTracesAgent.msi /quiet APIKEY=your_key ORGID=your_org_id</code></p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-num">2</div>
+        <div>
+            <h4>Configure Your Organization</h4>
+            <p>Log into the <a href="#" style="color:var(--accent);font-weight:600">Manager Dashboard</a> and set up departments, monitoring policies, and wellness intervals per team.</p>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-num">3</div>
+        <div>
+            <h4>Start Monitoring</h4>
+            <p>Once agents connect, you'll see real-time activity, screenshots, AI detection alerts, and compliance reports in your dashboard.</p>
+        </div>
+    </div>
+</div>
+
+<div class="requirements">
+    <div class="req-card">
+        <h3>System Requirements</h3>
+        <div class="req-grid">
+            <div class="req-item"><span class="check">&#10003;</span> Windows 10/11 (64-bit)</div>
+            <div class="req-item"><span class="check">&#10003;</span> 4 GB RAM minimum</div>
+            <div class="req-item"><span class="check">&#10003;</span> 200 MB disk space</div>
+            <div class="req-item"><span class="check">&#10003;</span> .NET 6.0 Runtime</div>
+            <div class="req-item"><span class="check">&#10003;</span> Internet connection (or on-prem server)</div>
+            <div class="req-item"><span class="check">&#10003;</span> Admin rights for install</div>
+            <div class="req-item"><span class="check">&#10003;</span> Camera (optional, for AI detection)</div>
+            <div class="req-item"><span class="check">&#10003;</span> CPU: 1% average usage</div>
+        </div>
+    </div>
+</div>
+
+<footer>&copy; 2025 Orgtraces. All rights reserved. &middot; <a href="index.html" style="color:var(--accent)">Back to Home</a></footer>
+
+</body>
+</html>
