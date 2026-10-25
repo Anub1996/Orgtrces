@@ -4,726 +4,847 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orgtraces — Monitor. Protect. Care.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth}
+        :root{
+            --bg:#faf9ff;
+            --accent:#7c3aed;--accent2:#6366f1;--accent3:#3b82f6;
+            --cyan:#06b6d4;--emerald:#10b981;--rose:#f43f5e;--amber:#f59e0b;
+            --text:#1e1b4b;--text2:#334155;--text3:#64748b;--text4:#94a3b8;
+            --glass:rgba(255,255,255,0.7);
+            --glass2:rgba(255,255,255,0.85);
+            --glass3:rgba(255,255,255,0.92);
+            --gborder:rgba(0,0,0,0.06);
+            --gborder2:rgba(0,0,0,0.1);
+            --pastel-purple:#ede9fe;--pastel-blue:#dbeafe;--pastel-cyan:#cffafe;
+            --pastel-green:#d1fae5;--pastel-rose:#ffe4e6;--pastel-amber:#fef3c7;
+            --pastel-indigo:#e0e7ff;
+        }
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        #stars-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 
-        :root {
-            --white: #ffffff;
-            --bg: #f8f9fc;
-            --bg-alt: #f0f2f8;
-            --surface: #ffffff;
-            --border: #e4e8f0;
-            --border-soft: #edf0f7;
+        .shapes-layer{position:fixed;inset:0;z-index:0;pointer-events:none;perspective:1200px;overflow:hidden}
+        .shape{position:absolute;border-radius:20%;border:1.5px solid rgba(124,58,237,0.1);transform-style:preserve-3d}
+        .shape-1{width:120px;height:120px;top:12%;left:8%;animation:float3d-1 18s ease-in-out infinite;background:linear-gradient(135deg,rgba(124,58,237,0.06),rgba(99,102,241,0.04))}
+        .shape-2{width:80px;height:80px;top:60%;right:6%;border-radius:50%;animation:float3d-2 22s ease-in-out infinite;background:linear-gradient(135deg,rgba(6,182,212,0.06),rgba(59,130,246,0.04));border-color:rgba(6,182,212,0.1)}
+        .shape-3{width:60px;height:60px;top:35%;right:18%;animation:float3d-3 15s ease-in-out infinite;background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(6,182,212,0.04));border-color:rgba(16,185,129,0.1);border-radius:30%}
+        .shape-4{width:100px;height:100px;bottom:15%;left:12%;border-radius:50%;animation:float3d-4 20s ease-in-out infinite;background:linear-gradient(135deg,rgba(244,63,94,0.04),rgba(124,58,237,0.04));border-color:rgba(244,63,94,0.08)}
+        .shape-5{width:45px;height:45px;top:20%;right:35%;animation:float3d-5 12s ease-in-out infinite;background:rgba(245,158,11,0.04);border-color:rgba(245,158,11,0.08);border-radius:12px}
 
-            /* Pastel palette */
-            --blue: #5b8dee;
-            --blue-light: #e8effd;
-            --blue-mid: #c6d8fb;
-            --violet: #7c6ff7;
-            --violet-light: #ede9ff;
-            --teal: #3dbcb8;
-            --teal-light: #dff5f4;
-            --rose: #f07fa0;
-            --rose-light: #fde8ef;
-            --amber: #f5a623;
-            --amber-light: #fef3de;
-            --green: #4cba87;
-            --green-light: #dff5ec;
+        @keyframes float3d-1{0%,100%{transform:translateZ(0) rotateX(0) rotateY(0) translateY(0)}25%{transform:translateZ(60px) rotateX(15deg) rotateY(25deg) translateY(-30px)}50%{transform:translateZ(30px) rotateX(-10deg) rotateY(50deg) translateY(10px)}75%{transform:translateZ(80px) rotateX(20deg) rotateY(35deg) translateY(-20px)}}
+        @keyframes float3d-2{0%,100%{transform:translateZ(0) rotateX(0) rotateY(0)}33%{transform:translateZ(50px) rotateX(-20deg) rotateY(30deg) translateY(-25px)}66%{transform:translateZ(20px) rotateX(15deg) rotateY(-20deg) translateY(15px)}}
+        @keyframes float3d-3{0%,100%{transform:rotateX(0) rotateY(0) rotateZ(0)}50%{transform:rotateX(180deg) rotateY(90deg) rotateZ(45deg) translateZ(40px)}}
+        @keyframes float3d-4{0%,100%{transform:translateZ(0) scale(1)}25%{transform:translateZ(40px) scale(1.1) translateY(-20px)}75%{transform:translateZ(20px) scale(0.95) translateY(10px)}}
+        @keyframes float3d-5{0%,100%{transform:rotateZ(0) translateY(0)}50%{transform:rotateZ(180deg) translateY(-35px) translateZ(30px)}}
 
-            --text: #1a2033;
-            --text-muted: #6b7a99;
-            --text-light: #9aa3ba;
+        .shape::before,.shape::after{content:'';position:absolute;inset:15%;border-radius:inherit;border:1px solid rgba(124,58,237,0.04)}
+        .shape::after{inset:30%;border-color:rgba(124,58,237,0.02)}
 
-            --radius: 16px;
-            --radius-lg: 24px;
-            --radius-xl: 32px;
-            --shadow-sm: 0 1px 4px rgba(26,32,51,0.06), 0 4px 16px rgba(26,32,51,0.06);
-            --shadow-md: 0 4px 20px rgba(26,32,51,0.08), 0 12px 40px rgba(26,32,51,0.06);
-            --shadow-lg: 0 8px 40px rgba(26,32,51,0.12), 0 20px 60px rgba(26,32,51,0.08);
-        }
+        .glow-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+        .glow{position:absolute;border-radius:50%;filter:blur(130px);opacity:0.25;animation:glowDrift 25s ease-in-out infinite alternate}
+        .glow-a{width:700px;height:700px;background:var(--pastel-purple);top:-15%;left:-10%}
+        .glow-b{width:500px;height:500px;background:var(--pastel-blue);top:40%;right:-15%;animation-delay:-8s;opacity:0.2}
+        .glow-c{width:600px;height:600px;background:var(--pastel-cyan);bottom:-25%;left:25%;animation-delay:-14s;opacity:0.15}
+        @keyframes glowDrift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(50px,-40px) scale(1.1)}100%{transform:translate(-30px,30px) scale(0.95)}}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            overflow-x: hidden;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
+        .page{position:relative;z-index:1}
 
-        /* ── HEADER ─────────────────────────────── */
-        header {
-            position: fixed; top: 0; left: 0; width: 100%;
-            padding: 0 5rem;
-            height: 72px;
-            display: flex; align-items: center; justify-content: space-between;
-            background: rgba(255,255,255,0.88);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-            z-index: 1000;
-        }
+        /* HEADER */
+        header{position:fixed;top:0;width:100%;height:70px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1rem,4vw,3.5rem);z-index:100;transition:all .4s;border-bottom:1px solid transparent}
+        header.scrolled{background:rgba(250,249,255,0.8);backdrop-filter:blur(40px) saturate(1.6);-webkit-backdrop-filter:blur(40px) saturate(1.6);border-color:var(--gborder);box-shadow:0 4px 24px rgba(0,0,0,0.06)}
+        .logo{display:flex;align-items:center;gap:.65rem;text-decoration:none;color:var(--text)}
+        .logo-mark{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:900;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent3));box-shadow:0 4px 16px rgba(124,58,237,0.3),inset 0 1px 1px rgba(255,255,255,0.2);position:relative}
+        .logo-mark::after{content:'';position:absolute;inset:-3px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent3));z-index:-1;opacity:.2;filter:blur(10px)}
+        .logo-text{font-size:1.25rem;font-weight:800;letter-spacing:-.5px}
+        nav{display:flex;align-items:center;gap:1.75rem}
+        nav a{color:var(--text3);text-decoration:none;font-weight:500;font-size:.85rem;transition:color .25s;position:relative}
+        nav a:hover{color:var(--text)}
+        nav a::after{content:'';position:absolute;bottom:-3px;left:0;width:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent3));transition:width .3s;border-radius:1px}
+        nav a:hover::after{width:100%}
 
-        .logo {
-            display: flex; align-items: center; gap: 0.75rem;
-            font-size: 1.35rem; font-weight: 800; color: var(--text); letter-spacing: -0.5px;
-            text-decoration: none;
-        }
-        .logo-icon {
-            width: 40px; height: 40px;
-            background: linear-gradient(135deg, var(--blue), var(--violet));
-            border-radius: 11px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.85rem; font-weight: 800; color: #fff;
-            box-shadow: 0 4px 14px rgba(91,141,238,0.35);
-        }
+        .btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.3rem;border-radius:11px;font-family:inherit;font-weight:600;font-size:.85rem;cursor:pointer;border:none;transition:all .3s;position:relative;overflow:hidden}
+        .btn::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,0.2) 50%,transparent 60%);transform:translateX(-100%);transition:transform .6s}
+        .btn:hover::after{transform:translateX(100%)}
+        .btn-p{background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;box-shadow:0 4px 16px rgba(124,58,237,0.3)}
+        .btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,58,237,0.35)}
+        .btn-o{background:rgba(255,255,255,0.8);color:var(--text2);border:1px solid var(--gborder)}
+        .btn-o:hover{background:#fff;border-color:var(--gborder2);color:var(--text)}
+        .btn-lg{padding:.85rem 2rem;font-size:.95rem;border-radius:14px}
+        .btn-xl{padding:1rem 2.5rem;font-size:1.02rem;border-radius:16px}
+        .btn-white{background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;font-weight:700;box-shadow:0 4px 20px rgba(124,58,237,0.3)}
+        .btn-white:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(124,58,237,0.4)}
+        .btn-ghost{background:rgba(255,255,255,0.85);color:var(--text2);border:1px solid var(--gborder);backdrop-filter:blur(10px)}
+        .btn-ghost:hover{background:#fff;color:var(--text)}
 
-        nav { display: flex; align-items: center; gap: 2rem; }
-        nav a {
-            color: var(--text-muted); text-decoration: none;
-            font-weight: 500; font-size: 0.9rem; transition: color 0.2s;
-        }
-        nav a:hover { color: var(--blue); }
+        /* HERO */
+        .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:7rem 1.5rem 5rem;position:relative}
+        .hero-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:700px;border-radius:50%;border:1px solid rgba(124,58,237,0.06);animation:ringPulse 8s ease-in-out infinite;pointer-events:none}
+        .hero-ring::before{content:'';position:absolute;inset:-80px;border-radius:50%;border:1px solid rgba(99,102,241,0.04);animation:ringPulse 8s ease-in-out infinite 2s}
+        .hero-ring::after{content:'';position:absolute;inset:-160px;border-radius:50%;border:1px solid rgba(59,130,246,0.03);animation:ringPulse 8s ease-in-out infinite 4s}
+        @keyframes ringPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.5}}
+        .hero-glow{position:absolute;top:5%;left:50%;transform:translateX(-50%);width:900px;height:500px;background:radial-gradient(ellipse,rgba(124,58,237,0.12) 0%,rgba(99,102,241,0.06) 30%,rgba(59,130,246,0.03) 55%,transparent 75%);filter:blur(50px);pointer-events:none;animation:heroGlowPulse 6s ease-in-out infinite alternate}
+        @keyframes heroGlowPulse{0%{opacity:.5;transform:translateX(-50%) scale(1)}100%{opacity:.8;transform:translateX(-50%) scale(1.05)}}
 
-        .btn {
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            padding: 0.6rem 1.4rem;
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600; font-size: 0.9rem;
-            cursor: pointer; transition: all 0.2s; border: none;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, var(--blue), var(--violet));
-            color: #fff;
-            box-shadow: 0 4px 14px rgba(91,141,238,0.35);
-        }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,141,238,0.45); }
-        .btn-outline {
-            background: transparent; color: var(--blue);
-            border: 1.5px solid var(--blue-mid);
-        }
-        .btn-outline:hover { background: var(--blue-light); }
-        .btn-lg { padding: 0.9rem 2rem; font-size: 1rem; border-radius: 12px; }
-        .btn-xl { padding: 1.1rem 2.4rem; font-size: 1.05rem; border-radius: 14px; }
+        .hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.2rem;background:var(--pastel-purple);border:1px solid rgba(124,58,237,0.12);border-radius:50px;font-size:.76rem;font-weight:600;color:var(--accent);margin-bottom:2.5rem;backdrop-filter:blur(12px);animation:fadeSlide .8s ease-out both;position:relative}
+        .hero-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(124,58,237,0.4);animation:dotPulse 2s infinite}
+        @keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.8)}}
 
-        /* ── HERO ─────────────────────────────── */
-        .hero {
-            padding: 10rem 5rem 6rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .hero::before {
-            content: '';
-            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 900px; height: 600px;
-            background: radial-gradient(ellipse at 50% 0%, rgba(91,141,238,0.1) 0%, rgba(124,111,247,0.07) 40%, transparent 70%);
-            pointer-events: none;
-        }
+        .hero h1{font-size:clamp(2.6rem,7vw,5.5rem);font-weight:900;line-height:1.05;letter-spacing:-3.5px;margin-bottom:1.75rem;animation:fadeSlide .8s ease-out .15s both;position:relative}
+        .hero-line-1{display:block;color:var(--text)}
+        .hero-line-2{display:block;position:relative}
+        .hero-line-2 span{background:linear-gradient(135deg,#7c3aed,#6366f1,#3b82f6,#06b6d4);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gradFlow 5s ease-in-out infinite}
+        @keyframes gradFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .hero-line-2::after{content:'';position:absolute;bottom:-8px;left:10%;width:80%;height:3px;background:linear-gradient(90deg,transparent,#818cf8,#60a5fa,#22d3ee,transparent);border-radius:2px;animation:underlineGlow 3s ease-in-out infinite alternate;opacity:.5}
+        @keyframes underlineGlow{0%{opacity:.2;transform:scaleX(.7)}100%{opacity:.5;transform:scaleX(1)}}
 
-        .badge-pill {
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            padding: 0.45rem 1.1rem;
-            background: var(--blue-light);
-            border: 1px solid var(--blue-mid);
-            border-radius: 50px;
-            font-size: 0.8rem; font-weight: 600; color: var(--blue);
-            margin-bottom: 2rem;
-            animation: fadeDown 0.7s ease-out both;
-        }
-        .badge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); animation: pulse 2s infinite; }
-        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
+        .hero p{font-size:clamp(1rem,1.8vw,1.2rem);color:var(--text3);max-width:640px;line-height:1.85;margin-bottom:2.5rem;animation:fadeSlide .8s ease-out .3s both;position:relative}
+        .hero-cta{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fadeSlide .8s ease-out .4s both;position:relative}
 
-        .hero h1 {
-            font-size: 4.8rem; font-weight: 800; line-height: 1.1;
-            letter-spacing: -2.5px; margin-bottom: 1.5rem;
-            color: var(--text);
-            animation: fadeUp 0.7s ease-out 0.1s both;
-        }
-        .hero h1 .highlight {
-            background: linear-gradient(135deg, var(--blue), var(--violet));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-        }
-        .hero p {
-            font-size: 1.2rem; color: var(--text-muted); max-width: 700px;
-            margin: 0 auto 2.5rem; line-height: 1.75;
-            animation: fadeUp 0.7s ease-out 0.2s both;
-        }
-        .hero-cta {
-            display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
-            animation: fadeUp 0.7s ease-out 0.3s both;
-        }
-        .hero-pills {
-            display: flex; flex-wrap: wrap; gap: 0.65rem; justify-content: center;
-            margin-top: 3.5rem;
-            animation: fadeUp 0.7s ease-out 0.4s both;
-        }
-        .pill {
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            padding: 0.5rem 1rem;
-            background: var(--white); border: 1px solid var(--border);
-            border-radius: 50px; font-size: 0.82rem; font-weight: 500;
-            color: var(--text-muted); box-shadow: var(--shadow-sm);
-            transition: all 0.2s;
-        }
-        .pill:hover { border-color: var(--blue-mid); color: var(--blue); transform: translateY(-2px); }
+        .hero-trust{display:flex;align-items:center;gap:1.5rem;margin-top:1.5rem;animation:fadeSlide .8s ease-out .5s both;position:relative;flex-wrap:wrap;justify-content:center}
+        .trust-badge{display:flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:600;color:var(--text4);letter-spacing:.3px}
+        .trust-badge .t-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.7rem;background:var(--pastel-green);border:1px solid rgba(16,185,129,0.12)}
+        .trust-divider{width:1px;height:16px;background:rgba(0,0,0,0.08)}
 
-        @keyframes fadeDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:none} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+        @keyframes fadeSlide{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
 
-        /* ── STATS ─────────────────────────────── */
-        .stats { padding: 5rem; }
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(4,1fr); gap: 1.5rem;
-            max-width: 1200px; margin: 0 auto;
-        }
-        .stat-card {
-            background: var(--white); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 2rem 1.75rem;
-            text-align: center; box-shadow: var(--shadow-sm);
-            transition: all 0.3s;
-        }
-        .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--blue-mid); }
-        .stat-value {
-            font-size: 3rem; font-weight: 800; font-family: 'JetBrains Mono', monospace;
-            background: linear-gradient(135deg, var(--blue), var(--violet));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-            line-height: 1; margin-bottom: 0.4rem;
-        }
-        .stat-label { font-size: 0.88rem; color: var(--text-muted); font-weight: 500; }
+        /* MOCKUP */
+        .hero-mockup{margin-top:4.5rem;perspective:1200px;animation:fadeSlide .8s ease-out .55s both;width:100%;max-width:950px;position:relative}
+        .mockup-tilt{transform:rotateX(12deg) rotateY(-3deg) scale(.98);transform-style:preserve-3d;transition:transform .6s cubic-bezier(.4,0,.2,1);border-radius:20px;overflow:hidden;background:rgba(255,255,255,0.9);border:1px solid var(--gborder2);backdrop-filter:blur(30px);box-shadow:0 40px 80px rgba(0,0,0,0.08),0 0 40px rgba(124,58,237,0.06),inset 0 1px 1px rgba(255,255,255,0.8)}
+        .mockup-tilt:hover{transform:rotateX(2deg) rotateY(0) scale(1)}
+        .mockup-bar{height:36px;display:flex;align-items:center;gap:7px;padding:0 14px;background:rgba(0,0,0,0.02);border-bottom:1px solid var(--gborder)}
+        .mockup-dot{width:10px;height:10px;border-radius:50%}
+        .mockup-dot.r{background:#f43f5e}.mockup-dot.y{background:#f59e0b}.mockup-dot.g{background:#10b981}
+        .mockup-url{margin-left:12px;flex:1;height:22px;border-radius:6px;background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);display:flex;align-items:center;padding:0 10px;font-size:.65rem;color:var(--text4);font-family:'JetBrains Mono',monospace}
+        .mockup-body{display:grid;grid-template-columns:200px 1fr;min-height:320px}
+        .mockup-sidebar{padding:16px;border-right:1px solid var(--gborder);display:flex;flex-direction:column;gap:6px}
+        .sb-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:.72rem;font-weight:500;color:var(--text3);transition:all .2s;cursor:default}
+        .sb-item.active{background:var(--pastel-purple);color:var(--accent);border:1px solid rgba(124,58,237,0.1)}
+        .sb-item:not(.active){border:1px solid transparent}
+        .sb-icon{width:18px;text-align:center;font-size:.8rem}
+        .mockup-main{padding:20px;display:flex;flex-direction:column;gap:16px}
+        .mock-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .mock-stat{padding:14px;border-radius:12px;background:rgba(0,0,0,0.015);border:1px solid var(--gborder);position:relative;overflow:hidden}
+        .mock-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:0 0 2px 2px}
+        .mock-stat:nth-child(1)::before{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+        .mock-stat:nth-child(2)::before{background:linear-gradient(90deg,var(--emerald),var(--cyan))}
+        .mock-stat:nth-child(3)::before{background:linear-gradient(90deg,var(--rose),var(--amber))}
+        .ms-val{font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700;margin-bottom:2px}
+        .ms-lbl{font-size:.65rem;color:var(--text4);font-weight:500}
+        .mock-chart{flex:1;border-radius:12px;background:rgba(0,0,0,0.015);border:1px solid var(--gborder);padding:14px;position:relative;min-height:120px;overflow:hidden}
+        .mock-chart-title{font-size:.7rem;font-weight:600;color:var(--text3);margin-bottom:10px}
+        .chart-bars{display:flex;align-items:flex-end;gap:6px;height:90px;padding-top:10px}
+        .chart-bar{flex:1;border-radius:5px 5px 0 0;animation:barGrow 1.5s ease-out both;transform-origin:bottom}
+        @keyframes barGrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+        .mockup-reflection{width:80%;height:100px;margin:0 auto;background:linear-gradient(180deg,rgba(124,58,237,0.04),transparent);border-radius:0 0 50% 50%;filter:blur(30px);pointer-events:none;margin-top:-20px}
 
-        /* ── SECTION COMMON ─────────────────── */
-        section { padding: 6rem 5rem; }
-        .section-eyebrow {
-            display: inline-block;
-            font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px;
-            text-transform: uppercase; color: var(--blue);
-            margin-bottom: 0.75rem;
-        }
-        .section-title {
-            font-size: 2.8rem; font-weight: 800; letter-spacing: -1.5px;
-            margin-bottom: 1rem; color: var(--text);
-        }
-        .section-sub { font-size: 1.1rem; color: var(--text-muted); max-width: 620px; line-height: 1.7; }
-        .section-header { text-align: center; margin-bottom: 4rem; }
-        .section-header .section-sub { margin: 0 auto; }
+        /* PILLS */
+        .hero-pills{display:flex;flex-wrap:wrap;gap:.55rem;justify-content:center;margin-top:3rem;max-width:860px;animation:fadeSlide .8s ease-out .65s both;position:relative}
+        .pill{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .95rem;background:rgba(255,255,255,0.8);border:1px solid var(--gborder);border-radius:50px;font-size:.78rem;font-weight:500;color:var(--text3);backdrop-filter:blur(10px);transition:all .35s;cursor:default}
+        .pill:hover{border-color:rgba(124,58,237,0.2);color:var(--accent);background:var(--pastel-purple);transform:translateY(-3px) scale(1.03);box-shadow:0 8px 24px rgba(124,58,237,0.08)}
+        .pill-icon{font-size:.85rem}
 
-        /* ── FEATURES ─────────────────────────── */
-        .features-grid {
-            display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem;
-            max-width: 1280px; margin: 0 auto;
-        }
-        .feature-card {
-            background: var(--white); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 2.25rem;
-            box-shadow: var(--shadow-sm); transition: all 0.3s;
-            position: relative; overflow: hidden;
-        }
-        .feature-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); border-color: var(--blue-mid); }
-        .feature-card::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 0;
-            border-radius: 0 0 4px 4px; background: linear-gradient(180deg, var(--blue), var(--violet));
-            transition: height 0.3s;
-        }
-        .feature-card:hover::after { height: 100%; width: 4px; top: 0; border-radius: 4px 0 0 4px; }
+        /* LOGO BAR */
+        .logo-bar{padding:4rem clamp(1rem,4vw,3.5rem) 3rem;text-align:center;position:relative;overflow:hidden}
+        .logo-bar-label{font-size:.7rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--text4);margin-bottom:2rem}
+        .logo-bar-row{display:flex;align-items:center;justify-content:center;gap:clamp(2rem,5vw,4rem);flex-wrap:wrap;max-width:1000px;margin:0 auto;opacity:.35;filter:grayscale(1);transition:all .6s}
+        .logo-bar-row:hover{opacity:.55;filter:grayscale(.5)}
+        .client-logo{font-size:1.3rem;font-weight:800;letter-spacing:-.5px;color:var(--text2);display:flex;align-items:center;gap:.5rem;font-family:'JetBrains Mono',monospace;white-space:nowrap}
+        .client-logo .cl-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;background:rgba(0,0,0,0.03);border:1px solid var(--gborder)}
 
-        .feature-icon-wrap {
-            width: 52px; height: 52px; border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; margin-bottom: 1.25rem;
-        }
-        .icon-blue { background: var(--blue-light); }
-        .icon-violet { background: var(--violet-light); }
-        .icon-teal { background: var(--teal-light); }
-        .icon-rose { background: var(--rose-light); }
-        .icon-amber { background: var(--amber-light); }
-        .icon-green { background: var(--green-light); }
+        /* STATS */
+        .stats{padding:3rem clamp(1rem,4vw,3.5rem) 5rem}
+        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;max-width:1200px;margin:0 auto}
+        .stat-card{text-align:center;padding:2.25rem 1.5rem;border-radius:20px;background:rgba(255,255,255,0.8);border:1px solid var(--gborder);backdrop-filter:blur(20px);position:relative;overflow:hidden;transition:all .4s;box-shadow:0 2px 12px rgba(0,0,0,0.03)}
+        .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,0,0,0.04),transparent)}
+        .stat-card:hover{transform:translateY(-6px);border-color:var(--gborder2);box-shadow:0 20px 40px rgba(0,0,0,0.06)}
+        .stat-val{font-size:3rem;font-weight:900;font-family:'JetBrains Mono',monospace;line-height:1;margin-bottom:.5rem}
+        .stat-val.v1{background:linear-gradient(135deg,#7c3aed,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .stat-val.v2{background:linear-gradient(135deg,#3b82f6,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .stat-val.v3{background:linear-gradient(135deg,#10b981,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .stat-val.v4{background:linear-gradient(135deg,#f59e0b,#f43f5e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .stat-lbl{font-size:.83rem;color:var(--text3);font-weight:500}
 
-        .feature-tag {
-            display: inline-block; padding: 0.25rem 0.65rem;
-            border-radius: 6px; font-size: 0.7rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.75rem;
-        }
-        .tag-ai { background: var(--violet-light); color: var(--violet); }
-        .tag-security { background: var(--rose-light); color: var(--rose); }
-        .tag-dlp { background: var(--amber-light); color: var(--amber); }
-        .tag-wellness { background: var(--green-light); color: var(--green); }
-        .tag-new { background: var(--teal-light); color: var(--teal); }
+        /* SECTION SHARED */
+        section{padding:6rem clamp(1rem,4vw,3.5rem)}
+        .sec-tag{font-size:.7rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:.75rem;background:linear-gradient(135deg,#7c3aed,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block}
+        .sec-title{font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:800;letter-spacing:-1.5px;margin-bottom:1rem;color:var(--text)}
+        .sec-sub{font-size:1rem;color:var(--text3);max-width:580px;line-height:1.8}
+        .sec-header{text-align:center;margin-bottom:4rem}
+        .sec-header .sec-sub{margin:0 auto}
 
-        .feature-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--text); }
-        .feature-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
+        /* HOW IT WORKS */
+        .how-it-works{background:linear-gradient(180deg,transparent,rgba(124,58,237,0.02),transparent);border-top:1px solid rgba(0,0,0,0.04)}
+        .hiw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;max-width:1100px;margin:0 auto;position:relative}
+        .hiw-grid::before{content:'';position:absolute;top:52px;left:15%;right:15%;height:2px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.12),rgba(99,102,241,0.18),rgba(59,130,246,0.12),transparent);z-index:0}
+        .hiw-card{text-align:center;padding:2rem 1.5rem;position:relative;z-index:1}
+        .hiw-num{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:900;font-family:'JetBrains Mono',monospace;margin:0 auto 1.5rem;background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;box-shadow:0 8px 24px rgba(124,58,237,0.25);position:relative}
+        .hiw-num::after{content:'';position:absolute;inset:-4px;border-radius:20px;background:linear-gradient(135deg,var(--accent),var(--accent3));z-index:-1;opacity:.15;filter:blur(12px)}
+        .hiw-card h3{font-size:1.15rem;font-weight:700;margin-bottom:.6rem;color:var(--text)}
+        .hiw-card p{font-size:.88rem;color:var(--text3);line-height:1.75;max-width:320px;margin:0 auto}
+        .hiw-time{display:inline-flex;align-items:center;gap:.35rem;margin-top:.8rem;padding:.3rem .8rem;background:var(--pastel-green);border:1px solid rgba(16,185,129,0.12);border-radius:50px;font-size:.7rem;font-weight:600;color:#059669}
 
-        /* ── WELLNESS ─────────────────────────── */
-        .wellness { background: var(--white); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-        .wellness-inner {
-            max-width: 1280px; margin: 0 auto;
-            display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center;
-        }
-        .wellness-card {
-            background: linear-gradient(145deg, var(--green-light), var(--teal-light));
-            border: 1px solid rgba(61,188,184,0.25);
-            border-radius: var(--radius-xl); padding: 3rem;
-            box-shadow: var(--shadow-md);
-        }
-        .wellness-notification {
-            background: var(--white); border-radius: var(--radius); padding: 1.75rem 2rem;
-            box-shadow: var(--shadow-md); display: flex; align-items: flex-start; gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        .wellness-notification-icon {
-            width: 44px; height: 44px; background: var(--green-light);
-            border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem; flex-shrink: 0;
-        }
-        .notif-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem; }
-        .notif-body { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem; }
-        .notif-actions { display: flex; gap: 0.5rem; }
-        .notif-btn {
-            padding: 0.35rem 0.85rem; border-radius: 7px; font-size: 0.78rem;
-            font-weight: 600; cursor: pointer; border: none; font-family: 'Inter',sans-serif;
-        }
-        .notif-btn-primary { background: var(--green); color: #fff; }
-        .notif-btn-ghost { background: var(--border-soft); color: var(--text-muted); }
+        /* FEATURES */
+        .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;max-width:1280px;margin:0 auto}
+        .f-card{padding:2rem;border-radius:20px;background:rgba(255,255,255,0.8);border:1px solid var(--gborder);backdrop-filter:blur(20px);position:relative;overflow:hidden;transition:all .45s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d;box-shadow:0 2px 12px rgba(0,0,0,0.03)}
+        .f-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.8),transparent);transition:opacity .3s}
+        .f-card::after{content:'';position:absolute;top:0;left:50%;width:60%;height:60%;transform:translate(-50%,-60%);border-radius:50%;transition:opacity .4s;opacity:0;filter:blur(60px);pointer-events:none}
+        .f-card:hover{transform:translateY(-8px) rotateX(2deg);border-color:var(--gborder2);box-shadow:0 25px 50px rgba(0,0,0,0.08)}
+        .f-card:hover::after{opacity:1}
+        .f-card.glow-purple::after{background:rgba(124,58,237,0.06)}
+        .f-card.glow-blue::after{background:rgba(59,130,246,0.06)}
+        .f-card.glow-cyan::after{background:rgba(6,182,212,0.06)}
+        .f-card.glow-green::after{background:rgba(16,185,129,0.06)}
+        .f-card.glow-rose::after{background:rgba(244,63,94,0.06)}
+        .f-card.glow-amber::after{background:rgba(245,158,11,0.06)}
+        .f-icon{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:1.25rem;position:relative}
+        .f-icon::after{content:'';position:absolute;inset:-2px;border-radius:16px;opacity:.3;filter:blur(8px);z-index:-1}
+        .fi-purple{background:var(--pastel-purple);border:1px solid rgba(124,58,237,0.1)}.fi-purple::after{background:rgba(124,58,237,0.15)}
+        .fi-blue{background:var(--pastel-blue);border:1px solid rgba(59,130,246,0.1)}.fi-blue::after{background:rgba(59,130,246,0.15)}
+        .fi-cyan{background:var(--pastel-cyan);border:1px solid rgba(6,182,212,0.1)}.fi-cyan::after{background:rgba(6,182,212,0.15)}
+        .fi-green{background:var(--pastel-green);border:1px solid rgba(16,185,129,0.1)}.fi-green::after{background:rgba(16,185,129,0.15)}
+        .fi-rose{background:var(--pastel-rose);border:1px solid rgba(244,63,94,0.1)}.fi-rose::after{background:rgba(244,63,94,0.15)}
+        .fi-amber{background:var(--pastel-amber);border:1px solid rgba(245,158,11,0.1)}.fi-amber::after{background:rgba(245,158,11,0.15)}
+        .f-tag{display:inline-block;padding:.18rem .55rem;border-radius:6px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:.7rem}
+        .t-ai{background:var(--pastel-purple);color:#7c3aed;border:1px solid rgba(124,58,237,0.1)}
+        .t-sec{background:var(--pastel-rose);color:#e11d48;border:1px solid rgba(244,63,94,0.1)}
+        .t-dlp{background:var(--pastel-amber);color:#d97706;border:1px solid rgba(245,158,11,0.1)}
+        .t-well{background:var(--pastel-green);color:#059669;border:1px solid rgba(16,185,129,0.1)}
+        .t-new{background:var(--pastel-cyan);color:#0891b2;border:1px solid rgba(6,182,212,0.1)}
+        .f-card h3{font-size:1.08rem;font-weight:700;margin-bottom:.55rem;color:var(--text)}
+        .f-card p{font-size:.85rem;color:var(--text3);line-height:1.75}
 
-        .wellness-text h2 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 1rem; }
-        .wellness-text p { font-size: 1rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 2rem; }
-        .wellness-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
-        .wellness-list li {
-            display: flex; align-items: flex-start; gap: 0.75rem;
-            padding: 1rem; background: var(--bg); border: 1px solid var(--border);
-            border-radius: var(--radius); font-size: 0.88rem;
-        }
-        .wellness-list li strong { display: block; font-weight: 600; margin-bottom: 0.15rem; color: var(--text); }
-        .wellness-list li span { color: var(--text-muted); }
-        .wl-icon { font-size: 1.25rem; flex-shrink: 0; }
+        /* TESTIMONIALS */
+        .testimonials{background:linear-gradient(180deg,transparent,rgba(124,58,237,0.015),transparent);border-top:1px solid rgba(0,0,0,0.04)}
+        .test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:1200px;margin:0 auto}
+        .test-card{padding:2rem;border-radius:24px;background:rgba(255,255,255,0.85);border:1px solid var(--gborder);backdrop-filter:blur(20px);position:relative;overflow:hidden;transition:all .4s;display:flex;flex-direction:column;box-shadow:0 2px 12px rgba(0,0,0,0.03)}
+        .test-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.8),transparent)}
+        .test-card:hover{transform:translateY(-6px);border-color:var(--gborder2);box-shadow:0 20px 40px rgba(0,0,0,0.06)}
+        .test-metric{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .9rem;background:var(--pastel-green);border:1px solid rgba(16,185,129,0.12);border-radius:50px;font-size:.78rem;font-weight:700;color:#059669;margin-bottom:1.25rem;font-family:'JetBrains Mono',monospace;align-self:flex-start}
+        .test-quote{font-size:.92rem;color:var(--text2);line-height:1.85;font-style:italic;flex:1;margin-bottom:1.5rem;position:relative;padding-left:1rem;border-left:2px solid rgba(124,58,237,0.15)}
+        .test-author{display:flex;align-items:center;gap:.75rem;margin-top:auto}
+        .test-avatar{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff}
+        .ta-1{background:linear-gradient(135deg,#7c3aed,#6366f1)}
+        .ta-2{background:linear-gradient(135deg,#3b82f6,#06b6d4)}
+        .ta-3{background:linear-gradient(135deg,#10b981,#06b6d4)}
+        .test-name{font-weight:700;font-size:.88rem;color:var(--text)}
+        .test-role{font-size:.75rem;color:var(--text4)}
 
-        /* ── PRICING ─────────────────────────── */
-        .pricing { background: var(--bg); }
-        .pricing-grid {
-            display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem;
-            max-width: 1100px; margin: 0 auto;
-        }
-        .pricing-card {
-            background: var(--white); border: 1px solid var(--border);
-            border-radius: var(--radius-xl); padding: 2.5rem;
-            box-shadow: var(--shadow-sm); transition: all 0.3s; position: relative;
-        }
-        .pricing-card:hover { box-shadow: var(--shadow-md); transform: translateY(-4px); }
-        .pricing-card.featured {
-            background: linear-gradient(145deg, #f5f0ff, #eef3ff);
-            border-color: var(--violet); border-width: 2px;
-            box-shadow: var(--shadow-lg);
-        }
-        .pricing-badge-top {
-            position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
-            padding: 0.35rem 1.1rem; background: linear-gradient(135deg, var(--blue), var(--violet));
-            color: #fff; border-radius: 50px; font-size: 0.72rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;
-        }
-        .plan-name { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 0.5rem; }
-        .plan-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.25rem; color: var(--text); }
-        .plan-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
-        .plan-price { font-size: 3.5rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--text); line-height: 1; }
-        .plan-price sup { font-size: 1.5rem; vertical-align: top; margin-top: 0.5rem; }
-        .plan-price sub { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); font-family: 'Inter', sans-serif; }
-        .plan-divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
-        .plan-features { list-style: none; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.65rem; }
-        .plan-features li { display: flex; align-items: center; gap: 0.65rem; font-size: 0.88rem; color: var(--text-muted); }
-        .plan-features li .check { color: var(--green); font-size: 1rem; flex-shrink: 0; }
-        .plan-cta { width: 100%; }
+        /* WELLNESS */
+        .wellness{background:linear-gradient(180deg,transparent,rgba(16,185,129,0.02),transparent);border-top:1px solid rgba(0,0,0,0.04)}
+        .well-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+        .well-card{border-radius:28px;padding:2.5rem;position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(16,185,129,0.05),rgba(6,182,212,0.03));border:1px solid rgba(16,185,129,0.1);backdrop-filter:blur(20px)}
+        .well-card::before{content:'';position:absolute;top:-40%;right:-30%;width:250px;height:250px;border-radius:50%;background:rgba(16,185,129,0.06);filter:blur(80px);pointer-events:none}
+        .well-card::after{content:'';position:absolute;bottom:-30%;left:-20%;width:200px;height:200px;border-radius:50%;background:rgba(6,182,212,0.04);filter:blur(60px);pointer-events:none}
+        .wc-header{display:flex;align-items:center;gap:.65rem;margin-bottom:1rem;position:relative;z-index:1}
+        .wc-header-icon{width:34px;height:34px;background:var(--pastel-green);border:1px solid rgba(16,185,129,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+        .wc-header span{font-weight:700;font-size:.95rem;color:var(--text)}
+        .wc-desc{font-size:.82rem;color:var(--text3);margin-bottom:1rem;position:relative;z-index:1;line-height:1.7}
+        .wc-notif{background:rgba(255,255,255,0.7);border:1px solid rgba(0,0,0,0.06);border-radius:16px;padding:1.4rem 1.5rem;display:flex;gap:.9rem;position:relative;z-index:1;backdrop-filter:blur(16px)}
+        .wc-notif-icon{width:42px;height:42px;background:var(--pastel-green);border:1px solid rgba(16,185,129,0.1);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+        .wc-n-title{font-weight:700;font-size:.9rem;margin-bottom:.2rem;color:var(--text)}
+        .wc-n-body{font-size:.8rem;color:var(--text3);margin-bottom:.65rem;line-height:1.6}
+        .wc-n-actions{display:flex;gap:.4rem}
+        .wc-n-btn{padding:.3rem .75rem;border-radius:8px;font-size:.73rem;font-weight:600;cursor:pointer;border:none;font-family:inherit}
+        .wc-n-btn.primary{background:var(--emerald);color:#fff;box-shadow:0 4px 12px rgba(16,185,129,0.2)}
+        .wc-n-btn.ghost{background:rgba(0,0,0,0.04);color:var(--text3)}
+        .wc-tags{display:flex;gap:.45rem;margin-top:1.1rem;flex-wrap:wrap;position:relative;z-index:1}
+        .wc-tag{padding:.25rem .7rem;border-radius:8px;font-size:.7rem;font-weight:600}
+        .wc-tag.green{background:var(--pastel-green);color:#059669;border:1px solid rgba(16,185,129,0.1)}
+        .wc-tag.blue{background:var(--pastel-blue);color:#2563eb;border:1px solid rgba(59,130,246,0.1)}
+        .wc-tag.purple{background:var(--pastel-purple);color:#7c3aed;border:1px solid rgba(124,58,237,0.1)}
+        .well-text h2{font-size:2.3rem;font-weight:800;letter-spacing:-1.5px;margin-bottom:1rem;color:var(--text)}
+        .well-text p{font-size:.93rem;color:var(--text3);line-height:1.8;margin-bottom:2rem}
+        .well-list{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:2rem}
+        .well-list li{display:flex;align-items:flex-start;gap:.7rem;padding:.85rem;background:rgba(255,255,255,0.7);border:1px solid var(--gborder);border-radius:14px;font-size:.83rem;backdrop-filter:blur(10px);transition:all .3s}
+        .well-list li:hover{background:rgba(16,185,129,0.04);border-color:rgba(16,185,129,0.12);transform:translateX(4px)}
+        .well-list li strong{display:block;font-weight:600;margin-bottom:.1rem;color:var(--text)}
+        .well-list li span{color:var(--text3);font-size:.78rem}
+        .wl-i{font-size:1.15rem;flex-shrink:0}
 
-        /* ── TRUST / ONPREM ─────────────────── */
-        .onprem { background: var(--white); border-top: 1px solid var(--border); }
-        .onprem-inner { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
-        .onprem-badges { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
-        .onprem-badge {
-            display: flex; align-items: center; gap: 0.6rem;
-            padding: 0.7rem 1.25rem; background: var(--bg);
-            border: 1px solid var(--border); border-radius: var(--radius);
-            font-size: 0.85rem; font-weight: 600; color: var(--text-muted);
-        }
-        .onprem-card {
-            background: linear-gradient(145deg, var(--blue-light), var(--violet-light));
-            border: 1px solid var(--blue-mid); border-radius: var(--radius-xl);
-            padding: 2.5rem; box-shadow: var(--shadow-md);
-        }
-        .onprem-card h4 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; }
-        .arch-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
-        .arch-list li {
-            display: flex; align-items: center; gap: 0.75rem;
-            padding: 0.85rem 1rem; background: rgba(255,255,255,0.7);
-            border-radius: 10px; font-size: 0.88rem; font-weight: 500;
-            border: 1px solid rgba(255,255,255,0.9);
-        }
-        .arch-icon { font-size: 1rem; width: 26px; text-align: center; }
+        /* COMPARISON TABLE */
+        .comparison{background:linear-gradient(180deg,transparent,rgba(59,130,246,0.015),transparent);border-top:1px solid rgba(0,0,0,0.04)}
+        .compare-wrap{max-width:900px;margin:0 auto;border-radius:24px;overflow:hidden;background:rgba(255,255,255,0.85);border:1px solid var(--gborder);backdrop-filter:blur(20px);box-shadow:0 4px 24px rgba(0,0,0,0.04)}
+        .compare-table{width:100%;border-collapse:collapse}
+        .compare-table thead th{padding:1.2rem 1rem;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text4);text-align:center;border-bottom:1px solid var(--gborder)}
+        .compare-table thead th:first-child{text-align:left;padding-left:1.5rem}
+        .compare-table thead th.highlight{color:var(--text);background:var(--pastel-purple);position:relative}
+        .compare-table thead th.highlight::after{content:'RECOMMENDED';position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;font-size:.55rem;padding:.2rem .6rem;border-radius:0 0 6px 6px;letter-spacing:1px}
+        .compare-table tbody td{padding:1rem 1rem;font-size:.85rem;text-align:center;color:var(--text3);border-bottom:1px solid rgba(0,0,0,0.03)}
+        .compare-table tbody td:first-child{text-align:left;font-weight:600;color:var(--text2);padding-left:1.5rem}
+        .compare-table tbody td.highlight{background:rgba(124,58,237,0.02)}
+        .compare-table tbody tr:last-child td{border-bottom:none}
+        .compare-table .ck-yes{color:#059669;font-weight:700;font-size:1.1rem}
+        .compare-table .ck-no{color:var(--text4);font-size:.85rem}
+        .compare-table .ck-partial{color:#d97706;font-size:.85rem}
 
-        /* ── CTA SECTION ────────────────────── */
-        .cta-section {
-            background: linear-gradient(135deg, var(--blue), var(--violet));
-            text-align: center; padding: 7rem 5rem;
-            position: relative; overflow: hidden;
-        }
-        .cta-section::before {
-            content: ''; position: absolute; top: -50%; left: -10%;
-            width: 500px; height: 500px; border-radius: 50%;
-            background: rgba(255,255,255,0.06); pointer-events: none;
-        }
-        .cta-section::after {
-            content: ''; position: absolute; bottom: -40%; right: -5%;
-            width: 400px; height: 400px; border-radius: 50%;
-            background: rgba(255,255,255,0.05); pointer-events: none;
-        }
-        .cta-section h2 { font-size: 3rem; font-weight: 800; color: #fff; letter-spacing: -1.5px; margin-bottom: 1rem; }
-        .cta-section p { font-size: 1.1rem; color: rgba(255,255,255,0.8); margin-bottom: 2.5rem; max-width: 600px; margin-left: auto; margin-right: auto; }
-        .cta-section .btn-white { background: #fff; color: var(--blue); font-weight: 700; }
-        .cta-section .btn-white:hover { background: #f0f4ff; transform: translateY(-1px); }
-        .cta-section .btn-ghost-white { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.5); }
-        .cta-section .btn-ghost-white:hover { background: rgba(255,255,255,0.1); }
-        .cta-section .cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+        /* PRICING */
+        .pricing{background:linear-gradient(180deg,transparent,rgba(124,58,237,0.015),transparent)}
+        .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;max-width:1100px;margin:0 auto}
+        .p-card{padding:2.5rem;border-radius:24px;background:rgba(255,255,255,0.85);border:1px solid var(--gborder);backdrop-filter:blur(20px);position:relative;overflow:hidden;transition:all .4s;box-shadow:0 2px 12px rgba(0,0,0,0.03)}
+        .p-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.8),transparent)}
+        .p-card:hover{transform:translateY(-6px);box-shadow:0 25px 50px rgba(0,0,0,0.08)}
+        .p-card.pop{background:linear-gradient(160deg,rgba(124,58,237,0.04),rgba(99,102,241,0.02),rgba(59,130,246,0.02));border-color:rgba(124,58,237,0.15);box-shadow:0 4px 40px rgba(124,58,237,0.08),0 2px 12px rgba(0,0,0,0.03)}
+        .p-card.pop::after{content:'';position:absolute;top:50%;left:50%;width:120%;height:120%;transform:translate(-50%,-50%);background:radial-gradient(ellipse,rgba(124,58,237,0.03),transparent 70%);pointer-events:none}
+        .p-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);padding:.35rem 1.2rem;background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;border-radius:50px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;box-shadow:0 4px 16px rgba(124,58,237,0.3)}
+        .p-tier{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text4);margin-bottom:.5rem}
+        .p-name{font-size:1.3rem;font-weight:800;margin-bottom:.2rem;color:var(--text)}
+        .p-desc{font-size:.82rem;color:var(--text3);margin-bottom:1.5rem}
+        .p-price{font-size:3.2rem;font-weight:900;font-family:'JetBrains Mono',monospace;line-height:1;color:var(--text)}
+        .p-price sup{font-size:1.3rem;vertical-align:top;margin-top:.5rem}
+        .p-price sub{font-size:.82rem;font-weight:400;color:var(--text3);font-family:'Inter',sans-serif}
+        .p-div{border:none;border-top:1px solid rgba(0,0,0,0.05);margin:1.5rem 0}
+        .p-feats{list-style:none;margin-bottom:2rem;display:flex;flex-direction:column;gap:.55rem}
+        .p-feats li{display:flex;align-items:center;gap:.6rem;font-size:.84rem;color:var(--text3)}
+        .p-feats .ck{color:var(--emerald);font-size:1rem;flex-shrink:0}
+        .p-cta{width:100%}
 
-        /* ── FOOTER ─────────────────────────── */
-        footer {
-            background: var(--white); border-top: 1px solid var(--border);
-            padding: 4rem 5rem 2rem;
-        }
-        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
-        .footer-brand p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; margin-top: 0.75rem; max-width: 280px; }
-        .footer-col h5 { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text); margin-bottom: 1rem; }
-        .footer-col a { display: block; font-size: 0.88rem; color: var(--text-muted); text-decoration: none; margin-bottom: 0.6rem; transition: color 0.2s; }
-        .footer-col a:hover { color: var(--blue); }
-        .footer-bottom {
-            padding-top: 2rem; border-top: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            font-size: 0.82rem; color: var(--text-light);
-        }
-        .footer-chips { display: flex; gap: 0.5rem; }
-        .footer-chip {
-            padding: 0.25rem 0.65rem; background: var(--bg);
-            border: 1px solid var(--border); border-radius: 6px;
-            font-size: 0.72rem; font-weight: 600; color: var(--text-muted);
-        }
+        /* ON-PREM */
+        .onprem{border-top:1px solid rgba(0,0,0,0.04);background:linear-gradient(180deg,transparent,rgba(59,130,246,0.015),transparent)}
+        .op-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+        .op-badges{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:2rem}
+        .op-badge{display:flex;align-items:center;gap:.45rem;padding:.55rem 1rem;background:rgba(255,255,255,0.8);border:1px solid var(--gborder);border-radius:12px;font-size:.8rem;font-weight:600;color:var(--text3);backdrop-filter:blur(10px);transition:all .3s}
+        .op-badge:hover{border-color:rgba(59,130,246,0.2);background:var(--pastel-blue);transform:translateY(-2px)}
+        .op-card{border-radius:28px;padding:2.5rem;position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(59,130,246,0.04),rgba(124,58,237,0.02));border:1px solid rgba(59,130,246,0.1);backdrop-filter:blur(20px)}
+        .op-card::before{content:'';position:absolute;bottom:-35%;left:-25%;width:250px;height:250px;border-radius:50%;background:rgba(59,130,246,0.05);filter:blur(80px);pointer-events:none}
+        .op-card h4{font-size:1.1rem;font-weight:700;margin-bottom:1.25rem;position:relative;color:var(--text)}
+        .arch-list{list-style:none;display:flex;flex-direction:column;gap:.5rem;position:relative}
+        .arch-list li{display:flex;align-items:center;gap:.7rem;padding:.75rem 1rem;background:rgba(255,255,255,0.5);border-radius:12px;font-size:.83rem;font-weight:500;border:1px solid rgba(0,0,0,0.04);transition:all .3s;color:var(--text2)}
+        .arch-list li:hover{background:var(--pastel-blue);border-color:rgba(59,130,246,0.1);transform:translateX(6px)}
+        .arch-i{font-size:.95rem;width:24px;text-align:center}
 
-        /* ── RESPONSIVE ─────────────────────── */
-        @media (max-width: 1100px) {
-            header { padding: 0 2rem; }
-            section { padding: 5rem 2rem; }
-            .stats { padding: 4rem 2rem; }
-            .hero { padding: 9rem 2rem 5rem; }
-            .hero h1 { font-size: 3.5rem; }
-            .features-grid, .pricing-grid, .stats-grid { grid-template-columns: repeat(2,1fr); }
-            .wellness-inner, .onprem-inner { grid-template-columns: 1fr; gap: 3rem; }
-            .footer-grid { grid-template-columns: 1fr 1fr; }
+        /* ROI */
+        .roi-section{border-top:1px solid rgba(0,0,0,0.04);background:linear-gradient(180deg,transparent,rgba(16,185,129,0.015),transparent)}
+        .roi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:1100px;margin:0 auto}
+        .roi-card{padding:2.25rem;border-radius:24px;background:rgba(255,255,255,0.85);border:1px solid var(--gborder);backdrop-filter:blur(20px);text-align:center;transition:all .4s;position:relative;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.03)}
+        .roi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+        .roi-card:nth-child(1)::before{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+        .roi-card:nth-child(2)::before{background:linear-gradient(90deg,var(--emerald),var(--cyan))}
+        .roi-card:nth-child(3)::before{background:linear-gradient(90deg,var(--amber),var(--rose))}
+        .roi-card:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,0.06)}
+        .roi-val{font-size:2.8rem;font-weight:900;font-family:'JetBrains Mono',monospace;margin-bottom:.5rem}
+        .roi-val.rv1{background:linear-gradient(135deg,#7c3aed,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .roi-val.rv2{background:linear-gradient(135deg,#10b981,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .roi-val.rv3{background:linear-gradient(135deg,#f59e0b,#f43f5e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .roi-label{font-size:.92rem;font-weight:600;margin-bottom:.3rem;color:var(--text)}
+        .roi-detail{font-size:.78rem;color:var(--text4);line-height:1.6}
+
+        /* CTA */
+        .cta-sec{text-align:center;padding:8rem clamp(1rem,4vw,3.5rem);position:relative;overflow:hidden}
+        .cta-sec::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,0.04),rgba(99,102,241,0.03),rgba(6,182,212,0.02));pointer-events:none}
+        .cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(124,58,237,0.08),transparent 70%);filter:blur(100px);pointer-events:none}
+        .cta-sec h2{font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-1.5px;margin-bottom:1rem;position:relative;color:var(--text)}
+        .cta-sec p{font-size:1rem;color:var(--text3);margin-bottom:1.5rem;max-width:520px;margin-left:auto;margin-right:auto;position:relative}
+        .cta-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;margin-bottom:1.5rem}
+        .cta-trust{display:flex;align-items:center;gap:1.5rem;justify-content:center;flex-wrap:wrap;position:relative}
+
+        /* FOOTER */
+        footer{background:rgba(255,255,255,0.6);border-top:1px solid rgba(0,0,0,0.06);padding:4rem clamp(1rem,4vw,3.5rem) 2rem}
+        .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;max-width:1200px;margin:0 auto 3rem}
+        .foot-brand p{font-size:.82rem;color:var(--text4);line-height:1.75;margin-top:.75rem;max-width:260px}
+        .foot-col h5{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:1rem}
+        .foot-col a{display:block;font-size:.83rem;color:var(--text4);text-decoration:none;margin-bottom:.55rem;transition:all .25s}
+        .foot-col a:hover{color:var(--accent);transform:translateX(3px)}
+        .foot-bottom{padding-top:2rem;border-top:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;font-size:.78rem;color:var(--text4);max-width:1200px;margin:0 auto}
+        .foot-chips{display:flex;gap:.45rem}
+        .foot-chip{padding:.22rem .65rem;background:rgba(0,0,0,0.03);border:1px solid var(--gborder);border-radius:8px;font-size:.68rem;font-weight:600;color:var(--text4)}
+
+        /* SCROLL REVEAL */
+        .rv{opacity:0;transform:translateY(40px);transition:opacity .7s cubic-bezier(.4,0,.2,1),transform .7s cubic-bezier(.4,0,.2,1)}
+        .rv.vis{opacity:1;transform:none}
+        .rv-d1{transition-delay:.1s}.rv-d2{transition-delay:.2s}.rv-d3{transition-delay:.3s}
+
+        /* RESPONSIVE */
+        @media(max-width:1100px){
+            .features-grid,.pricing-grid,.stats-grid,.test-grid,.hiw-grid,.roi-grid{grid-template-columns:repeat(2,1fr)}
+            .well-inner,.op-inner{grid-template-columns:1fr;gap:3rem}
+            .foot-grid{grid-template-columns:1fr 1fr}
+            .mockup-body{grid-template-columns:1fr}
+            .mockup-sidebar{display:none}
+            .compare-wrap{overflow-x:auto}
         }
-        @media (max-width: 640px) {
-            nav a { display: none; }
-            .hero h1 { font-size: 2.6rem; letter-spacing: -1px; }
-            .features-grid, .pricing-grid, .stats-grid { grid-template-columns: 1fr; }
-            .wellness-list { grid-template-columns: 1fr; }
-            .footer-grid { grid-template-columns: 1fr; }
-            footer { padding: 3rem 1.5rem 1.5rem; }
+        @media(max-width:640px){
+            nav a:not(.btn){display:none}
+            .features-grid,.pricing-grid,.stats-grid,.test-grid,.hiw-grid,.roi-grid{grid-template-columns:1fr}
+            .well-list{grid-template-columns:1fr}
+            .foot-grid{grid-template-columns:1fr}
+            .foot-bottom{flex-direction:column;gap:1rem}
+            .hero h1{letter-spacing:-2px}
+            .hero-ring{display:none}
+            .mock-stats{grid-template-columns:1fr}
+            .hero-trust{gap:.75rem}
+            .logo-bar-row{gap:1.5rem}
+            .client-logo{font-size:1rem}
         }
     </style>
 </head>
 <body>
 
+<canvas id="stars-canvas"></canvas>
+<div class="shapes-layer">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+    <div class="shape shape-5"></div>
+</div>
+<div class="glow-layer">
+    <div class="glow glow-a"></div>
+    <div class="glow glow-b"></div>
+    <div class="glow glow-c"></div>
+</div>
+
+<div class="page">
+
 <!-- HEADER -->
-<header>
+<header id="hdr">
     <a class="logo" href="#">
-        <div class="logo-icon">OT</div>
-        <span>Orgtraces</span>
+        <div class="logo-mark">OT</div>
+        <span class="logo-text">Orgtraces</span>
     </a>
     <nav>
         <a href="#features">Features</a>
         <a href="#wellness">Wellness</a>
         <a href="#pricing">Pricing</a>
         <a href="#onprem">On-Premises</a>
-        <button class="btn btn-outline" style="margin-right:0.25rem;">Schedule Demo</button>
-        <button class="btn btn-primary">Start Free Trial</button>
+        <button class="btn btn-o">Schedule Demo</button>
+        <button class="btn btn-p">Start Free Trial</button>
     </nav>
 </header>
 
 <!-- HERO -->
 <section class="hero">
-    <div class="badge-pill"><span class="badge-dot"></span> AI-Powered · Wellness-First · Enterprise-Ready</div>
-    <h1>Monitor. Protect.<br><span class="highlight">Comply. Care.</span></h1>
-    <p>The only employee monitoring platform that combines real-time compliance, AI liveness detection, DLP security — and actually cares about your team's wellbeing.</p>
+    <div class="hero-ring"></div>
+    <div class="hero-glow"></div>
+
+    <div class="hero-badge"><span class="dot"></span> Trusted by 500+ companies worldwide</div>
+
+    <h1>
+        <span class="hero-line-1">Cut compliance risk 80%.</span>
+        <span class="hero-line-2"><span>Protect your workforce.</span></span>
+    </h1>
+
+    <p>Enterprise teams use Orgtraces to eliminate insider threats, automate compliance, and boost productivity — while keeping employees healthy and engaged.</p>
+
     <div class="hero-cta">
-        <button class="btn btn-primary btn-xl">🚀 Start Free 7-Day Trial</button>
-        <button class="btn btn-outline btn-xl">Schedule a Demo</button>
+        <button class="btn btn-p btn-xl">Start Free 7-Day Trial</button>
+        <button class="btn btn-o btn-xl">Schedule a Demo</button>
     </div>
+
+    <div class="hero-trust">
+        <div class="trust-badge"><span class="t-icon">&#128274;</span> SOC 2 Type II</div>
+        <div class="trust-divider"></div>
+        <div class="trust-badge"><span class="t-icon">&#127758;</span> GDPR Compliant</div>
+        <div class="trust-divider"></div>
+        <div class="trust-badge"><span class="t-icon">&#9989;</span> ISO 27001</div>
+        <div class="trust-divider"></div>
+        <div class="trust-badge"><span class="t-icon">&#128737;</span> HIPAA Ready</div>
+    </div>
+
+    <!-- 3D DASHBOARD MOCKUP -->
+    <div class="hero-mockup">
+        <div class="mockup-tilt" id="mockup">
+            <div class="mockup-bar">
+                <div class="mockup-dot r"></div>
+                <div class="mockup-dot y"></div>
+                <div class="mockup-dot g"></div>
+                <div class="mockup-url">orgtraces.app/dashboard</div>
+            </div>
+            <div class="mockup-body">
+                <div class="mockup-sidebar">
+                    <div class="sb-item active"><span class="sb-icon">&#9707;</span> Dashboard</div>
+                    <div class="sb-item"><span class="sb-icon">&#128101;</span> Employees</div>
+                    <div class="sb-item"><span class="sb-icon">&#128247;</span> Screenshots</div>
+                    <div class="sb-item"><span class="sb-icon">&#129302;</span> AI Detection</div>
+                    <div class="sb-item"><span class="sb-icon">&#128274;</span> Screen Lock</div>
+                    <div class="sb-item"><span class="sb-icon">&#128737;</span> DLP</div>
+                    <div class="sb-item"><span class="sb-icon">&#128154;</span> Wellness</div>
+                    <div class="sb-item"><span class="sb-icon">&#9881;</span> Settings</div>
+                </div>
+                <div class="mockup-main">
+                    <div class="mock-stats">
+                        <div class="mock-stat"><div class="ms-val" style="color:#7c3aed">247</div><div class="ms-lbl">Active Users</div></div>
+                        <div class="mock-stat"><div class="ms-val" style="color:#059669">98.2%</div><div class="ms-lbl">Compliance Rate</div></div>
+                        <div class="mock-stat"><div class="ms-val" style="color:#d97706">12</div><div class="ms-lbl">Alerts Today</div></div>
+                    </div>
+                    <div class="mock-chart">
+                        <div class="mock-chart-title">Weekly Activity Overview</div>
+                        <div class="chart-bars" id="chart-bars"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mockup-reflection"></div>
+    </div>
+
     <div class="hero-pills">
-        <span class="pill">🎯 Idle & Break Tracking</span>
-        <span class="pill">🤖 YOLOv8x Local AI</span>
-        <span class="pill">💚 Wellness Alerts</span>
-        <span class="pill">🔒 OTP Screen Lock</span>
-        <span class="pill">📸 Auto Screenshots</span>
-        <span class="pill">🏢 On-Premises Support</span>
-        <span class="pill">🛡️ DLP Protection</span>
-        <span class="pill">📹 Admin Camera Control</span>
+        <span class="pill"><span class="pill-icon">&#127919;</span> Idle & Break Tracking</span>
+        <span class="pill"><span class="pill-icon">&#129302;</span> YOLOv8x Local AI</span>
+        <span class="pill"><span class="pill-icon">&#128154;</span> Wellness Alerts</span>
+        <span class="pill"><span class="pill-icon">&#128274;</span> OTP Screen Lock</span>
+        <span class="pill"><span class="pill-icon">&#128247;</span> Auto Screenshots</span>
+        <span class="pill"><span class="pill-icon">&#127970;</span> On-Premises</span>
+        <span class="pill"><span class="pill-icon">&#128737;</span> DLP Protection</span>
+        <span class="pill"><span class="pill-icon">&#128249;</span> Camera Control</span>
     </div>
 </section>
+
+<!-- LOGO BAR -->
+<div class="logo-bar rv">
+    <div class="logo-bar-label">Trusted by teams at innovative companies</div>
+    <div class="logo-bar-row">
+        <div class="client-logo"><span class="cl-icon">&#127973;</span> Finova</div>
+        <div class="client-logo"><span class="cl-icon">&#128188;</span> Meridian</div>
+        <div class="client-logo"><span class="cl-icon">&#9729;</span> CloudPeak</div>
+        <div class="client-logo"><span class="cl-icon">&#128640;</span> LaunchPad</div>
+        <div class="client-logo"><span class="cl-icon">&#128300;</span> BioSync</div>
+        <div class="client-logo"><span class="cl-icon">&#9889;</span> Voltaiq</div>
+    </div>
+</div>
 
 <!-- STATS -->
 <section class="stats">
     <div class="stats-grid">
-        <div class="stat-card"><div class="stat-value">3x</div><div class="stat-label">Cheaper than Teramind</div></div>
-        <div class="stat-card"><div class="stat-value">&lt;10</div><div class="stat-label">Min deployment time</div></div>
-        <div class="stat-card"><div class="stat-value">100%</div><div class="stat-label">Offline AI — no data leaves device</div></div>
-        <div class="stat-card"><div class="stat-value">$3</div><div class="stat-label">Starting per user / month</div></div>
+        <div class="stat-card rv"><div class="stat-val v1" data-target="3" data-suffix="x">0x</div><div class="stat-lbl">Cheaper than Teramind</div></div>
+        <div class="stat-card rv rv-d1"><div class="stat-val v2" data-target="10" data-prefix="<" data-suffix="">0</div><div class="stat-lbl">Min deployment time</div></div>
+        <div class="stat-card rv rv-d2"><div class="stat-val v3" data-target="100" data-suffix="%">0%</div><div class="stat-lbl">Offline AI — no data leaves device</div></div>
+        <div class="stat-card rv rv-d3"><div class="stat-val v4" data-target="3" data-prefix="$" data-suffix="">0</div><div class="stat-lbl">Starting per user / month</div></div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-it-works" id="how-it-works">
+    <div class="sec-header rv">
+        <div class="sec-tag">How It Works</div>
+        <h2 class="sec-title">Deploy in 3 simple steps</h2>
+        <p class="sec-sub">From sign-up to full visibility in under 10 minutes. No infrastructure changes required.</p>
+    </div>
+    <div class="hiw-grid">
+        <div class="hiw-card rv"><div class="hiw-num">1</div><h3>Install the Agent</h3><p>Deploy our lightweight MSI agent via SCCM, Intune, or manual install. Zero impact on endpoint performance.</p><div class="hiw-time">&#9201; 3 min</div></div>
+        <div class="hiw-card rv rv-d1"><div class="hiw-num">2</div><h3>Configure Policies</h3><p>Set monitoring rules per department — idle thresholds, screenshot intervals, DLP policies, wellness breaks.</p><div class="hiw-time">&#9881; 5 min</div></div>
+        <div class="hiw-card rv rv-d2"><div class="hiw-num">3</div><h3>Monitor in Real-Time</h3><p>See live dashboards with AI-powered insights, compliance alerts, and employee wellness reports from day one.</p><div class="hiw-time">&#128640; Instant</div></div>
     </div>
 </section>
 
 <!-- FEATURES -->
 <section id="features">
-    <div class="section-header">
-        <span class="section-eyebrow">Platform Capabilities</span>
-        <h2 class="section-title">Everything your enterprise needs</h2>
-        <p class="section-sub">One platform. All departments. Configured per team.</p>
+    <div class="sec-header rv">
+        <div class="sec-tag">Platform Capabilities</div>
+        <h2 class="sec-title">Everything your enterprise needs</h2>
+        <p class="sec-sub">One platform. All departments. Configured per team.</p>
     </div>
     <div class="features-grid">
-        <div class="feature-card">
-            <div class="feature-icon-wrap icon-blue">⏱️</div>
-            <h3>Session Time Tracking</h3>
-            <p>Login time, logout time, total active work, break time, screen lock count — all tracked per session with real-time admin visibility.</p>
+        <div class="f-card glow-blue rv"><div class="f-icon fi-blue">&#9201;</div><h3>Session Time Tracking</h3><p>Login time, logout time, total active work, break time, screen lock count — all tracked per session with real-time admin visibility.</p></div>
+        <div class="f-card glow-green rv rv-d1"><span class="f-tag t-well">Wellness</span><div class="f-icon fi-green">&#128154;</div><h3>Wellness Break Notifications</h3><p>After 30-60 min of continuous work (admin-configurable), employees receive a friendly desktop notification to take a break.</p></div>
+        <div class="f-card glow-cyan rv rv-d2"><div class="f-icon fi-cyan">&#127919;</div><h3>Configurable Idle Detection</h3><p>Set idle threshold per department. Trigger an alert sound on the user's machine or auto-apply OTP screen lock.</p></div>
+        <div class="f-card glow-blue rv"><div class="f-icon fi-blue">&#128247;</div><h3>Scheduled Screenshots</h3><p>Capture screens at admin-defined intervals with configurable quality. Stored securely in cloud or on-premises storage.</p></div>
+        <div class="f-card glow-rose rv rv-d1"><span class="f-tag t-sec">Security</span><div class="f-icon fi-rose">&#128274;</div><h3>Remote OTP Screen Lock</h3><p>Admin locks any user's screen with a 6-digit OTP. Full-screen overlay, multi-monitor, blocks Win key.</p></div>
+        <div class="f-card glow-amber rv rv-d2"><span class="f-tag t-dlp">DLP</span><div class="f-icon fi-amber">&#128737;</div><h3>Clipboard & Screenshot Block</h3><p>Prevent data leakage via clipboard copy-paste and PrintScreen key per department. Real-time breach alerts.</p></div>
+        <div class="f-card glow-purple rv"><span class="f-tag t-ai">AI</span><div class="f-icon fi-purple">&#129302;</div><h3>YOLOv8x Local AI Detection</h3><p>Detects no-person, multiple persons, mobile phone usage — fully offline via local ONNX model. No video ever leaves the device.</p></div>
+        <div class="f-card glow-purple rv rv-d1"><span class="f-tag t-ai">AI</span><div class="f-icon fi-purple">&#128065;</div><h3>Liveness Detection</h3><p>Blink count and head movement tracking ensures the right person is at the workstation. Configurable thresholds.</p></div>
+        <div class="f-card glow-cyan rv rv-d2"><span class="f-tag t-new">New</span><div class="f-icon fi-cyan">&#128249;</div><h3>Admin Camera On-Demand</h3><p>Admin can activate the user's camera anytime — for meetings, identity checks, or compliance reviews. User is notified.</p></div>
+    </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials" id="testimonials">
+    <div class="sec-header rv">
+        <div class="sec-tag">What Our Customers Say</div>
+        <h2 class="sec-title">Trusted by security & HR leaders</h2>
+        <p class="sec-sub">See how enterprises use Orgtraces to protect data, stay compliant, and keep their teams engaged.</p>
+    </div>
+    <div class="test-grid">
+        <div class="test-card rv">
+            <div class="test-metric">&#8593; 40% compliance improvement</div>
+            <div class="test-quote">"We replaced Teramind with Orgtraces and saved over $18K annually. The on-premises option sealed the deal — our legal team wouldn't approve any cloud-only vendor."</div>
+            <div class="test-author"><div class="test-avatar ta-1">RK</div><div><div class="test-name">Rajesh K.</div><div class="test-role">CISO, Finova Financial</div></div></div>
         </div>
-        <div class="feature-card">
-            <span class="feature-tag tag-wellness">Wellness</span>
-            <div class="feature-icon-wrap icon-green">💚</div>
-            <h3>Wellness Break Notifications</h3>
-            <p>After 30–60 min of continuous work (admin-configurable), employees receive a friendly desktop notification to take a break.</p>
+        <div class="test-card rv rv-d1">
+            <div class="test-metric">&#8595; 65% fewer idle incidents</div>
+            <div class="test-quote">"The wellness features changed how our employees feel about monitoring. They actually appreciate the break reminders. Engagement scores went up after deployment."</div>
+            <div class="test-author"><div class="test-avatar ta-2">SP</div><div><div class="test-name">Sarah P.</div><div class="test-role">VP of People, Meridian Corp</div></div></div>
         </div>
-        <div class="feature-card">
-            <div class="feature-icon-wrap icon-teal">🎯</div>
-            <h3>Configurable Idle Detection</h3>
-            <p>Set idle threshold per department. Trigger an alert sound on the user's machine or auto-apply OTP screen lock.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon-wrap icon-blue">📸</div>
-            <h3>Scheduled Screenshots</h3>
-            <p>Capture screens at admin-defined intervals with configurable quality. Stored securely in cloud or on-premises storage.</p>
-        </div>
-        <div class="feature-card">
-            <span class="feature-tag tag-security">Security</span>
-            <div class="feature-icon-wrap icon-rose">🔒</div>
-            <h3>Remote OTP Screen Lock</h3>
-            <p>Admin locks any user's screen with a 6-digit OTP. Full-screen overlay, multi-monitor, blocks Win key.</p>
-        </div>
-        <div class="feature-card">
-            <span class="feature-tag tag-dlp">DLP</span>
-            <div class="feature-icon-wrap icon-amber">🛡️</div>
-            <h3>Clipboard & Screenshot Block</h3>
-            <p>Prevent data leakage via clipboard copy-paste and PrintScreen key per department. Real-time breach alerts.</p>
-        </div>
-        <div class="feature-card">
-            <span class="feature-tag tag-ai">AI</span>
-            <div class="feature-icon-wrap icon-violet">🤖</div>
-            <h3>YOLOv8x Local AI Detection</h3>
-            <p>Detects no-person, multiple persons, mobile phone usage — fully offline via local ONNX model. No video ever leaves the device.</p>
-        </div>
-        <div class="feature-card">
-            <span class="feature-tag tag-ai">AI</span>
-            <div class="feature-icon-wrap icon-violet">👁️</div>
-            <h3>Liveness Detection</h3>
-            <p>Blink count and head movement tracking ensures the right person is at the workstation. Configurable thresholds.</p>
-        </div>
-        <div class="feature-card">
-            <span class="feature-tag tag-new">New</span>
-            <div class="feature-icon-wrap icon-teal">📹</div>
-            <h3>Admin Camera On-Demand</h3>
-            <p>Admin can activate the user's camera anytime — for meetings, identity checks, or compliance reviews. User is notified.</p>
+        <div class="test-card rv rv-d2">
+            <div class="test-metric">&#128274; Zero data breaches in 12 months</div>
+            <div class="test-quote">"The DLP and AI detection caught three insider threats in our first quarter. The local AI processing means nothing leaves our network — our security auditors love it."</div>
+            <div class="test-author"><div class="test-avatar ta-3">DM</div><div><div class="test-name">David M.</div><div class="test-role">IT Director, CloudPeak Systems</div></div></div>
         </div>
     </div>
 </section>
 
 <!-- WELLNESS -->
 <section class="wellness" id="wellness">
-    <div class="wellness-inner">
-        <div>
-            <div class="wellness-card">
-                <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
-                    <div style="width:36px;height:36px;background:rgba(76,186,135,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;">💚</div>
-                    <span style="font-weight:700;font-size:1rem;color:#1a2033;">Smart Wellness Monitor</span>
-                </div>
-                <p style="font-size:0.85rem;color:#6b7a99;margin-bottom:1rem;">Orgtraces gently monitors continuous work duration and proactively reminds your team to rest.</p>
-                <div class="wellness-notification">
-                    <div class="wellness-notification-icon">🔔</div>
+    <div class="well-inner">
+        <div class="rv">
+            <div class="well-card">
+                <div class="wc-header"><div class="wc-header-icon">&#128154;</div><span>Smart Wellness Monitor</span></div>
+                <p class="wc-desc">Orgtraces gently monitors continuous work duration and proactively reminds your team to rest.</p>
+                <div class="wc-notif">
+                    <div class="wc-notif-icon">&#128276;</div>
                     <div>
-                        <div class="notif-title">Time to take a break!</div>
-                        <div class="notif-body">"You've been working for 45 minutes. Step away, hydrate, and rest your eyes."</div>
-                        <div class="notif-actions">
-                            <button class="notif-btn notif-btn-primary">Take Break</button>
-                            <button class="notif-btn notif-btn-ghost">Remind Later</button>
-                        </div>
+                        <div class="wc-n-title">Time to take a break!</div>
+                        <div class="wc-n-body">"You've been working for 45 minutes. Step away, hydrate, and rest your eyes."</div>
+                        <div class="wc-n-actions"><button class="wc-n-btn primary">Take Break</button><button class="wc-n-btn ghost">Remind Later</button></div>
                     </div>
                 </div>
-                <div style="display:flex;gap:0.5rem;margin-top:1.25rem;flex-wrap:wrap;">
-                    <span style="padding:0.3rem 0.75rem;background:rgba(76,186,135,0.15);color:#4cba87;border-radius:6px;font-size:0.75rem;font-weight:600;">🚶 Stretch</span>
-                    <span style="padding:0.3rem 0.75rem;background:rgba(91,141,238,0.15);color:#5b8dee;border-radius:6px;font-size:0.75rem;font-weight:600;">💧 Hydrate</span>
-                    <span style="padding:0.3rem 0.75rem;background:rgba(124,111,247,0.15);color:#7c6ff7;border-radius:6px;font-size:0.75rem;font-weight:600;">👁️ Eye Rest</span>
-                </div>
+                <div class="wc-tags"><span class="wc-tag green">Stretch</span><span class="wc-tag blue">Hydrate</span><span class="wc-tag purple">Eye Rest</span></div>
             </div>
         </div>
-        <div class="wellness-text">
-            <span class="section-eyebrow">Employee Wellbeing</span>
-            <h2>Monitoring that <span style="background:linear-gradient(135deg,#4cba87,#3dbcb8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">actually cares</span></h2>
-            <p>Orgtraces isn't just about compliance — it actively protects your team's health and productivity. After every configurable work interval, employees receive gentle reminders to take care of themselves.</p>
-            <ul class="wellness-list">
-                <li><span class="wl-icon">⚙️</span><div><strong>Configurable Intervals</strong><span>Admins set work interval per department</span></div></li>
-                <li><span class="wl-icon">🔔</span><div><strong>Gentle Notifications</strong><span>Desktop alerts, never intrusive</span></div></li>
-                <li><span class="wl-icon">👁️</span><div><strong>Eye Strain Prevention</strong><span>Regular break reminders</span></div></li>
-                <li><span class="wl-icon">📊</span><div><strong>Wellness Reports</strong><span>For HR and team insights</span></div></li>
+        <div class="well-text rv rv-d1">
+            <div class="sec-tag">Employee Wellbeing</div>
+            <h2>Monitoring that <span style="background:linear-gradient(135deg,#10b981,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">actually cares</span></h2>
+            <p>Orgtraces isn't just about compliance — it actively protects your team's health and productivity. After every configurable work interval, employees receive gentle reminders.</p>
+            <ul class="well-list">
+                <li><span class="wl-i">&#9881;</span><div><strong>Configurable Intervals</strong><span>Admins set work interval per department</span></div></li>
+                <li><span class="wl-i">&#128276;</span><div><strong>Gentle Notifications</strong><span>Desktop alerts, never intrusive</span></div></li>
+                <li><span class="wl-i">&#128065;</span><div><strong>Eye Strain Prevention</strong><span>Regular break reminders</span></div></li>
+                <li><span class="wl-i">&#128200;</span><div><strong>Wellness Reports</strong><span>For HR and team insights</span></div></li>
             </ul>
-            <button class="btn btn-primary btn-lg">Learn About Wellness Features →</button>
+            <button class="btn btn-p btn-lg">Learn About Wellness Features</button>
         </div>
+    </div>
+</section>
+
+<!-- COMPARISON TABLE -->
+<section class="comparison" id="comparison">
+    <div class="sec-header rv">
+        <div class="sec-tag">Why Choose Us</div>
+        <h2 class="sec-title">See how Orgtraces compares</h2>
+        <p class="sec-sub">Feature-for-feature, Orgtraces delivers more at a fraction of the cost.</p>
+    </div>
+    <div class="compare-wrap rv">
+        <table class="compare-table">
+            <thead><tr><th>Feature</th><th class="highlight">Orgtraces</th><th>Teramind</th><th>ActivTrak</th></tr></thead>
+            <tbody>
+                <tr><td>Starting Price</td><td class="highlight"><strong style="color:#059669">$3/user/mo</strong></td><td>$15/user/mo</td><td>$10/user/mo</td></tr>
+                <tr><td>On-Premises Deployment</td><td class="highlight"><span class="ck-yes">&#10003;</span></td><td><span class="ck-yes">&#10003;</span></td><td><span class="ck-no">&#10005;</span></td></tr>
+                <tr><td>Local AI (no cloud inference)</td><td class="highlight"><span class="ck-yes">&#10003;</span></td><td><span class="ck-no">&#10005;</span></td><td><span class="ck-no">&#10005;</span></td></tr>
+                <tr><td>Employee Wellness Features</td><td class="highlight"><span class="ck-yes">&#10003;</span></td><td><span class="ck-no">&#10005;</span></td><td><span class="ck-partial">Partial</span></td></tr>
+                <tr><td>Liveness Detection</td><td class="highlight"><span class="ck-yes">&#10003;</span></td><td><span class="ck-no">&#10005;</span></td><td><span class="ck-no">&#10005;</span></td></tr>
+                <tr><td>DLP (Clipboard + Screenshot Block)</td><td class="highlight"><span class="ck-yes">&#10003;</span></td><td><span class="ck-yes">&#10003;</span></td><td><span class="ck-no">&#10005;</span></td></tr>
+                <tr><td>Remote OTP Screen Lock</td><td class="highlight"><span class="ck-yes">&#10003;</span></td><td><span class="ck-no">&#10005;</span></td><td><span class="ck-no">&#10005;</span></td></tr>
+                <tr><td>Air-Gapped Environment Support</td><td class="highlight"><span class="ck-yes">&#10003;</span></td><td><span class="ck-partial">Limited</span></td><td><span class="ck-no">&#10005;</span></td></tr>
+            </tbody>
+        </table>
     </div>
 </section>
 
 <!-- PRICING -->
 <section class="pricing" id="pricing">
-    <div class="section-header">
-        <span class="section-eyebrow">Pricing</span>
-        <h2 class="section-title">Transparent, scalable pricing</h2>
-        <p class="section-sub">Pay only for monitored users. No minimums. No hidden fees. Cancel anytime.</p>
+    <div class="sec-header rv">
+        <div class="sec-tag">Pricing</div>
+        <h2 class="sec-title">Transparent, scalable pricing</h2>
+        <p class="sec-sub">Pay only for monitored users. No minimums. No hidden fees. Cancel anytime.</p>
     </div>
     <div class="pricing-grid">
-        <div class="pricing-card">
-            <div class="plan-name">Starter</div>
-            <div class="plan-title">Basic Professional</div>
-            <div class="plan-desc">Startups & SMBs (10–30 users)</div>
-            <div class="plan-price"><sup>$</sup>3<sub>/user/mo</sub></div>
-            <hr class="plan-divider">
-            <ul class="plan-features">
-                <li><span class="check">✓</span> Login & logout tracking</li>
-                <li><span class="check">✓</span> Idle detection + alert sound</li>
-                <li><span class="check">✓</span> Active / break / lock time</li>
-                <li><span class="check">✓</span> Wellness break notifications</li>
-                <li><span class="check">✓</span> Scheduled screenshots (basic)</li>
-                <li><span class="check">✓</span> Email + chat support</li>
-            </ul>
-            <button class="btn btn-outline plan-cta btn-lg">Get Started</button>
+        <div class="p-card rv">
+            <div class="p-tier">Starter</div><div class="p-name">Basic Professional</div><div class="p-desc">Startups & SMBs (10-30 users)</div>
+            <div class="p-price"><sup>$</sup>3<sub>/user/mo</sub></div><hr class="p-div">
+            <ul class="p-feats"><li><span class="ck">&#10003;</span> Login & logout tracking</li><li><span class="ck">&#10003;</span> Idle detection + alert sound</li><li><span class="ck">&#10003;</span> Active / break / lock time</li><li><span class="ck">&#10003;</span> Wellness break notifications</li><li><span class="ck">&#10003;</span> Scheduled screenshots (basic)</li><li><span class="ck">&#10003;</span> Email + chat support</li></ul>
+            <button class="btn btn-o p-cta btn-lg">Get Started</button>
         </div>
-        <div class="pricing-card featured">
-            <div class="pricing-badge-top">⭐ Most Popular</div>
-            <div class="plan-name">Professional</div>
-            <div class="plan-title">Business Suite</div>
-            <div class="plan-desc">Growing teams (30–200 users)</div>
-            <div class="plan-price"><sup>$</sup>6<sub>/user/mo</sub></div>
-            <hr class="plan-divider">
-            <ul class="plan-features">
-                <li><span class="check">✓</span> Everything in Starter</li>
-                <li><span class="check">✓</span> YOLOv8x AI presence detection</li>
-                <li><span class="check">✓</span> Liveness detection</li>
-                <li><span class="check">✓</span> Remote OTP screen lock</li>
-                <li><span class="check">✓</span> Clipboard & screenshot DLP</li>
-                <li><span class="check">✓</span> Admin camera on-demand</li>
-                <li><span class="check">✓</span> Priority support + SLA</li>
-            </ul>
-            <button class="btn btn-primary plan-cta btn-lg">Get Started</button>
+        <div class="p-card pop rv rv-d1">
+            <div class="p-badge">Most Popular</div>
+            <div class="p-tier">Professional</div><div class="p-name">Business Suite</div><div class="p-desc">Growing teams (30-200 users)</div>
+            <div class="p-price"><sup>$</sup>6<sub>/user/mo</sub></div><hr class="p-div">
+            <ul class="p-feats"><li><span class="ck">&#10003;</span> Everything in Starter</li><li><span class="ck">&#10003;</span> YOLOv8x AI presence detection</li><li><span class="ck">&#10003;</span> Liveness detection</li><li><span class="ck">&#10003;</span> Remote OTP screen lock</li><li><span class="ck">&#10003;</span> Clipboard & screenshot DLP</li><li><span class="ck">&#10003;</span> Admin camera on-demand</li><li><span class="ck">&#10003;</span> Priority support + SLA</li></ul>
+            <button class="btn btn-p p-cta btn-lg">Get Started</button>
         </div>
-        <div class="pricing-card">
-            <div class="plan-name">Enterprise</div>
-            <div class="plan-title">Enterprise Edition</div>
-            <div class="plan-desc">Large deployments (200+ users)</div>
-            <div class="plan-price" style="font-size:2.2rem;">Custom</div>
-            <hr class="plan-divider">
-            <ul class="plan-features">
-                <li><span class="check">✓</span> Everything in Business Suite</li>
-                <li><span class="check">✓</span> Full on-premises deployment</li>
-                <li><span class="check">✓</span> SSO / LDAP integration</li>
-                <li><span class="check">✓</span> Custom retention & data policy</li>
-                <li><span class="check">✓</span> Dedicated success manager</li>
-                <li><span class="check">✓</span> White-label option</li>
-                <li><span class="check">✓</span> 99.9% SLA</li>
-            </ul>
-            <button class="btn btn-outline plan-cta btn-lg">Contact Sales</button>
+        <div class="p-card rv rv-d2">
+            <div class="p-tier">Enterprise</div><div class="p-name">Enterprise Edition</div><div class="p-desc">Large deployments (200+ users)</div>
+            <div class="p-price" style="font-size:2.2rem">Custom</div><hr class="p-div">
+            <ul class="p-feats"><li><span class="ck">&#10003;</span> Everything in Business Suite</li><li><span class="ck">&#10003;</span> Full on-premises deployment</li><li><span class="ck">&#10003;</span> SSO / LDAP integration</li><li><span class="ck">&#10003;</span> Custom retention & data policy</li><li><span class="ck">&#10003;</span> Dedicated success manager</li><li><span class="ck">&#10003;</span> White-label option</li><li><span class="ck">&#10003;</span> 99.9% SLA</li></ul>
+            <button class="btn btn-o p-cta btn-lg">Contact Sales</button>
         </div>
     </div>
 </section>
 
 <!-- ON-PREMISES -->
 <section class="onprem" id="onprem">
-    <div class="onprem-inner">
-        <div>
-            <span class="section-eyebrow">Deployment Options</span>
-            <h2 class="section-title">On-Premises or Cloud — your choice</h2>
-            <p class="section-sub">Orgtraces deploys fully on your own infrastructure. All monitoring data stays inside your network. Zero dependency on external cloud.</p>
-            <div class="onprem-badges">
-                <div class="onprem-badge">🖥️ Windows Server</div>
-                <div class="onprem-badge">🐧 Linux</div>
-                <div class="onprem-badge">☁️ Azure / AWS</div>
-                <div class="onprem-badge">🏢 Private DC</div>
-                <div class="onprem-badge">🔐 Air-Gapped</div>
+    <div class="op-inner">
+        <div class="rv">
+            <div class="sec-tag">Deployment Options</div>
+            <h2 class="sec-title">On-Premises or Cloud — your choice</h2>
+            <p class="sec-sub">Orgtraces deploys fully on your own infrastructure. All monitoring data stays inside your network.</p>
+            <div class="op-badges">
+                <div class="op-badge">&#128421; Windows Server</div>
+                <div class="op-badge">&#128039; Linux</div>
+                <div class="op-badge">&#9729; Azure / AWS</div>
+                <div class="op-badge">&#127970; Private DC</div>
+                <div class="op-badge">&#128274; Air-Gapped</div>
             </div>
-            <button class="btn btn-primary btn-lg" style="margin-top:2rem;">View Deployment Docs →</button>
+            <button class="btn btn-p btn-lg" style="margin-top:2rem">View Deployment Docs</button>
         </div>
-        <div class="onprem-card">
-            <h4>🏗️ Architecture Highlights</h4>
+        <div class="op-card rv rv-d1">
+            <h4>Architecture Highlights</h4>
             <ul class="arch-list">
-                <li><span class="arch-icon">🤖</span> ONNX model runs 100% locally — no cloud inference</li>
-                <li><span class="arch-icon">📦</span> MSI installer — auto-deploy via SCCM / Intune</li>
-                <li><span class="arch-icon">🗃️</span> SQL Server / PostgreSQL on your own DB</li>
-                <li><span class="arch-icon">🔐</span> End-to-end AES-256 encrypted payloads</li>
-                <li><span class="arch-icon">📡</span> WebSocket real-time admin dashboard</li>
-                <li><span class="arch-icon">🔑</span> Active Directory / LDAP authentication</li>
-                <li><span class="arch-icon">📊</span> Prometheus + Grafana metrics support</li>
+                <li><span class="arch-i">&#129302;</span> ONNX model runs 100% locally — no cloud inference</li>
+                <li><span class="arch-i">&#128230;</span> MSI installer — auto-deploy via SCCM / Intune</li>
+                <li><span class="arch-i">&#128451;</span> SQL Server / PostgreSQL on your own DB</li>
+                <li><span class="arch-i">&#128274;</span> End-to-end AES-256 encrypted payloads</li>
+                <li><span class="arch-i">&#128225;</span> WebSocket real-time admin dashboard</li>
+                <li><span class="arch-i">&#128273;</span> Active Directory / LDAP authentication</li>
+                <li><span class="arch-i">&#128200;</span> Prometheus + Grafana metrics support</li>
             </ul>
         </div>
     </div>
 </section>
 
+<!-- ROI OUTCOMES -->
+<section class="roi-section" id="roi">
+    <div class="sec-header rv">
+        <div class="sec-tag">Measurable ROI</div>
+        <h2 class="sec-title">Results that justify the investment</h2>
+        <p class="sec-sub">Enterprise customers report these outcomes within their first 90 days of deployment.</p>
+    </div>
+    <div class="roi-grid">
+        <div class="roi-card rv"><div class="roi-val rv1" data-target="67" data-suffix="%">0%</div><div class="roi-label">Reduction in Unproductive Time</div><div class="roi-detail">AI-powered idle detection and automated alerts keep teams focused without micromanagement.</div></div>
+        <div class="roi-card rv rv-d1"><div class="roi-val rv2" data-target="3" data-suffix="x">0x</div><div class="roi-label">ROI in First Year</div><div class="roi-detail">Lower license cost + reduced insider threat losses + improved productivity = clear payback.</div></div>
+        <div class="roi-card rv rv-d2"><div class="roi-val rv3" data-target="92" data-suffix="%">0%</div><div class="roi-label">Employee Approval Rating</div><div class="roi-detail">Wellness-first approach means employees see monitoring as supportive, not surveillance.</div></div>
+    </div>
+</section>
+
 <!-- CTA -->
-<section class="cta-section">
+<section class="cta-sec">
+    <div class="cta-glow"></div>
     <h2>Ready to deploy Orgtraces?</h2>
     <p>Full-feature access. No credit card. We'll send your trial installer within 24 hours.</p>
     <div class="cta-actions">
-        <button class="btn btn-white btn-xl">🚀 Start Free 7-Day Trial</button>
-        <button class="btn btn-ghost-white btn-xl">Talk to Sales</button>
+        <button class="btn btn-white btn-xl">Start Free 7-Day Trial</button>
+        <button class="btn btn-ghost btn-xl">Talk to Sales</button>
+    </div>
+    <div class="cta-trust">
+        <div class="trust-badge"><span class="t-icon">&#128274;</span> SOC 2 Type II</div>
+        <div class="trust-divider"></div>
+        <div class="trust-badge"><span class="t-icon">&#127758;</span> GDPR Compliant</div>
+        <div class="trust-divider"></div>
+        <div class="trust-badge"><span class="t-icon">&#9989;</span> ISO 27001</div>
+        <div class="trust-divider"></div>
+        <div class="trust-badge"><span class="t-icon">&#128737;</span> HIPAA Ready</div>
     </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
-    <div class="footer-grid">
-        <div class="footer-brand">
-            <a class="logo" href="#" style="font-size:1.15rem;">
-                <div class="logo-icon" style="width:34px;height:34px;font-size:0.75rem;">OT</div>
-                <span>Orgtraces</span>
-            </a>
+    <div class="foot-grid">
+        <div class="foot-brand">
+            <a class="logo" href="#" style="font-size:1.1rem"><div class="logo-mark" style="width:32px;height:32px;font-size:.7rem">OT</div><span class="logo-text">Orgtraces</span></a>
             <p>Enterprise-grade employee monitoring that combines real-time compliance, AI, and employee wellbeing.</p>
         </div>
-        <div class="footer-col">
-            <h5>Product</h5>
-            <a href="#">Features</a>
-            <a href="#">Pricing</a>
-            <a href="#">Changelog</a>
-            <a href="#">Roadmap</a>
-        </div>
-        <div class="footer-col">
-            <h5>Company</h5>
-            <a href="#">About</a>
-            <a href="#">Blog</a>
-            <a href="#">Careers</a>
-            <a href="#">Contact</a>
-        </div>
-        <div class="footer-col">
-            <h5>Legal</h5>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">GDPR</a>
-            <a href="#">Security</a>
-        </div>
+        <div class="foot-col"><h5>Product</h5><a href="#">Features</a><a href="#">Pricing</a><a href="#">Changelog</a><a href="#">Roadmap</a></div>
+        <div class="foot-col"><h5>Company</h5><a href="#">About</a><a href="#">Blog</a><a href="#">Careers</a><a href="#">Contact</a></div>
+        <div class="foot-col"><h5>Legal</h5><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">GDPR</a><a href="#">Security</a></div>
     </div>
-    <div class="footer-bottom">
-        <span>© 2025 Orgtraces. All rights reserved.</span>
-        <div class="footer-chips">
-            <span class="footer-chip">SOC2 Ready</span>
-            <span class="footer-chip">GDPR Compliant</span>
-            <span class="footer-chip">ISO 27001</span>
-        </div>
+    <div class="foot-bottom">
+        <span>&copy; 2025 Orgtraces. All rights reserved.</span>
+        <div class="foot-chips"><span class="foot-chip">SOC2 Ready</span><span class="foot-chip">GDPR Compliant</span><span class="foot-chip">ISO 27001</span></div>
     </div>
 </footer>
+
+</div>
+
+<script>
+(function(){
+    const canvas=document.getElementById('stars-canvas');
+    const ctx=canvas.getContext('2d');
+    let stars=[];
+    function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight}
+    function createStars(){
+        stars=[];
+        const count=Math.floor((canvas.width*canvas.height)/8000);
+        const palette=['180,160,255','160,200,255','140,220,230','180,230,200','255,180,200','255,210,160'];
+        for(let i=0;i<count;i++){
+            stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.5+.4,a:Math.random(),da:(Math.random()-.5)*.006,dy:Math.random()*.06+.015,c:palette[Math.floor(Math.random()*palette.length)]});
+        }
+    }
+    function drawStars(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(const s of stars){
+            s.a+=s.da;if(s.a>1||s.a<.1)s.da*=-1;
+            s.y+=s.dy;if(s.y>canvas.height){s.y=0;s.x=Math.random()*canvas.width}
+            ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+            ctx.fillStyle=`rgba(${s.c},${s.a*.35})`;ctx.fill();
+        }
+        requestAnimationFrame(drawStars);
+    }
+    resizeCanvas();createStars();drawStars();
+    window.addEventListener('resize',()=>{resizeCanvas();createStars()});
+
+    const hdr=document.getElementById('hdr');
+    window.addEventListener('scroll',()=>hdr.classList.toggle('scrolled',scrollY>50));
+
+    const obs=new IntersectionObserver(entries=>{
+        entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');obs.unobserve(e.target)}});
+    },{threshold:.1,rootMargin:'0px 0px -30px 0px'});
+    document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+
+    document.querySelectorAll('.f-card').forEach(card=>{
+        card.addEventListener('mousemove',e=>{
+            const r=card.getBoundingClientRect();
+            const x=(e.clientX-r.left)/r.width-.5;
+            const y=(e.clientY-r.top)/r.height-.5;
+            card.style.transform=`translateY(-8px) rotateY(${x*10}deg) rotateX(${-y*10}deg)`;
+        });
+        card.addEventListener('mouseleave',()=>card.style.transform='');
+    });
+
+    const mockup=document.getElementById('mockup');
+    const heroEl=document.querySelector('.hero-mockup');
+    heroEl.addEventListener('mousemove',e=>{
+        const r=heroEl.getBoundingClientRect();
+        const x=(e.clientX-r.left)/r.width-.5;
+        const y=(e.clientY-r.top)/r.height-.5;
+        mockup.style.transform=`rotateX(${-y*12+4}deg) rotateY(${x*12}deg) scale(.99)`;
+    });
+    heroEl.addEventListener('mouseleave',()=>{
+        mockup.style.transform='rotateX(12deg) rotateY(-3deg) scale(.98)';
+    });
+
+    const colors=['#818cf8','#a78bfa','#60a5fa','#34d399','#22d3ee','#fbbf24','#fb7185'];
+    const barContainer=document.getElementById('chart-bars');
+    ['M','T','W','T','F','S','S'].forEach((d,i)=>{
+        const h=30+Math.random()*60;
+        const bar=document.createElement('div');
+        bar.className='chart-bar';
+        bar.style.cssText=`height:${h}%;background:linear-gradient(180deg,${colors[i]},${colors[i]}33);animation-delay:${i*0.12+0.8}s;box-shadow:0 0 8px ${colors[i]}22`;
+        barContainer.appendChild(bar);
+    });
+
+    const counterObs=new IntersectionObserver(entries=>{
+        entries.forEach(e=>{
+            if(!e.isIntersecting)return;
+            const el=e.target;
+            const target=parseInt(el.dataset.target);
+            const prefix=el.dataset.prefix||'';
+            const suffix=el.dataset.suffix||'';
+            let current=0;
+            const step=Math.max(1,Math.ceil(target/40));
+            const timer=setInterval(()=>{
+                current+=step;
+                if(current>=target){current=target;clearInterval(timer)}
+                el.textContent=prefix+current+suffix;
+            },35);
+            counterObs.unobserve(el);
+        });
+    },{threshold:.5});
+    document.querySelectorAll('[data-target]').forEach(el=>counterObs.observe(el));
+
+    let ticking=false;
+    window.addEventListener('scroll',()=>{
+        if(ticking)return;ticking=true;
+        requestAnimationFrame(()=>{
+            const sy=scrollY;
+            document.querySelectorAll('.shape').forEach((s,i)=>{
+                const speed=[.02,.015,.025,.01,.03][i]||.02;
+                s.style.translate=`0 ${sy*speed*-1}px`;
+            });
+            ticking=false;
+        });
+    });
+})();
+</script>
 
 </body>
 </html>
